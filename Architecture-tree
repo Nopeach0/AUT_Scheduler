@@ -1,0 +1,85 @@
+kea-buddy/
+│
+├── index.html                          # Landing / login redirect
+├── .htaccess                           # URL rewrites, security headers
+├── README.md
+│
+├── /pages/                             # Main HTML pages (8 total)
+│   ├── login.html
+│   ├── register.html
+│   ├── forgot-password.html
+│   ├── home.html                       # Dashboard
+│   ├── ai-assistant.html
+│   ├── events.html                     # Events + News list
+│   ├── event-detail.html               # Single event/news view
+│   ├── calendar.html
+│   ├── profile.html
+│   └── 404.html
+│
+├── /assets/
+│   ├── /css/
+│   │   ├── global.css                  # Reset, variables, typography
+│   │   ├── components.css              # Buttons, cards, pills, nav, modals
+│   │   ├── pages.css                   # Page-specific styles
+│   │   └── responsive.css              # Media queries for mobile
+│   │
+│   ├── /js/
+│   │   ├── app.js                      # Shared: nav, auth check, fetch helpers
+│   │   ├── auth.js                     # Login / register / password reset
+│   │   ├── home.js                     # Dashboard data loading
+│   │   ├── ai-assistant.js             # Chat, file upload, AI requests
+│   │   ├── events.js                   # Events list, filters, search
+│   │   ├── calendar.js                 # Calendar grid, event CRUD
+│   │   ├── profile.js                  # Stats, heatmap, settings
+│   │   ├── aut-scraper-client.js       # Fetch AUT news from backend
+│   │   └── utils.js                    # Date formatting, validators
+│   │
+│   ├── /images/
+│   │   ├── logo-kakapo.svg
+│   │   ├── mascot-full.svg
+│   │   └── /icons/
+│   │
+│   └── /fonts/
+│
+├── /api/                               # PHP backend endpoints
+│   ├── /auth/
+│   │   ├── login.php
+│   │   ├── register.php
+│   │   ├── logout.php
+│   │   ├── forgot-password.php
+│   │   └── reset-password.php
+│   │
+│   ├── /user/
+│   │   ├── profile.php                 # GET/PUT profile data
+│   │   ├── stats.php                   # Usage stats for profile page
+│   │   └── settings.php
+│   │
+│   ├── /calendar/
+│   │   ├── events.php                  # GET/POST/DELETE calendar events
+│   │   └── reminders.php
+│   │
+│   ├── /events/
+│   │   ├── list.php                    # AUT events from DB
+│   │   ├── detail.php
+│   │   └── scrape-aut.php              # Cron job — scrapes aut.ac.nz
+│   │
+│   ├── /ai/
+│   │   ├── assistant.php               # Calls Claude/OpenAI API
+│   │   ├── upload.php                  # Handles file uploads
+│   │   └── nutrition.php               # Recipe/meal suggestions
+│   │
+│   └── /courses/
+│       └── list.php                    # User's enrolled courses
+│
+├── /includes/                          # Shared PHP
+│   ├── config.php                      # DB credentials, API keys
+│   ├── db.php                          # PDO connection
+│   ├── auth-check.php                  # Session validation
+│   ├── functions.php                   # Helpers (sanitise, format)
+│   └── header.php / footer.php         # If using PHP includes
+│
+├── /uploads/                           # User-uploaded files
+│   └── /assignments/
+│
+└── /database/
+    └── kea_buddy.sql                   # Schema + seed data
