@@ -1,0 +1,68 @@
+[33mcommit 5859eb5a967d55bfa09d5bc709c2e520aad9fdda[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Behdad Khorasani <Behdadkh123@gmail.com>
+Date:   Mon Apr 20 19:47:58 2026 +1200
+
+    Added all the necessary authentication pages
+
+[33mcommit ce31d91a557c01ba2ed7e83cef1d83ad89bf547f[m
+Author: Behdad Khorasani <Behdadkh123@gmail.com>
+Date:   Mon Apr 20 17:49:16 2026 +1200
+
+    Added the sign in authentication page
+
+[33mcommit eeccd28d3101a8e3ccf6e454ca769b846b846983[m
+Author: Behdad Khorasani <Behdadkh123@gmail.com>
+Date:   Mon Apr 20 17:10:08 2026 +1200
+
+    New files added
+
+[33mcommit 0bf696f3956a37840408b3404faa91b7e5787b56[m
+Author: Behdad Khorasani <Behdadkh123@gmail.com>
+Date:   Wed Mar 25 18:05:37 2026 +1300
+
+    Added a .gitignore file
+
+[33mcommit 367749f30ca8df921b318db8aa4c0dbc8fa7a75b[m
+Author: Behdad Khorasani <Behdadkh123@gmail.com>
+Date:   Wed Mar 18 18:04:54 2026 +1300
+
+    Final TEAM_AGREEMENT
+
+[33mcommit 07d74d42a6c4160c69e94d46db558f1fa265de08[m
+Merge: 0833ce9 6334768
+Author: Behdad Khorasani <Behdadkh123@gmail.com>
+Date:   Mon Mar 16 17:40:41 2026 +1300
+
+    Merge branch 'main' of https://github.com/Nopeach0/AUT_Scheduler
+
+[33mcommit 0833ce9140e5a5a8ee9d1bfe049e0bd957b8e72a[m
+Author: Behdad Khorasani <Behdadkh123@gmail.com>
+Date:   Mon Mar 16 17:36:25 2026 +1300
+
+    Added new members tothe TEAM_AGREEMENT
+
+[33mcommit 63347689b95b8b0ee963d8398b4c8cdf96382825[m
+Author: Kees-M <scg1813@aut.ac.nz>
+Date:   Mon Mar 16 17:22:23 2026 +1300
+
+    Update TEAM_AGREEMENT
+    
+    Signed the agreement
+
+[33mcommit 3bf76ff5563bb2985c88a957dc8c70eae4a15ae4[m
+Author: Behdad Khorasani <Behdadkh123@gmail.com>
+Date:   Mon Mar 16 17:16:44 2026 +1300
+
+    Changed the Team_Agreement
+
+[33mcommit a6eea8b4c7b8c8e3279a7ae6abcb9f35787be50c[m
+Author: Behdad Khorasani <Behdadkh123@gmail.com>
+Date:   Thu Mar 12 16:38:43 2026 +1300
+
+    Added Team_Agreement
+
+[33mcommit 9041ec8c65d25f5400d65819a28bba7b7cf57a33[m
+Author: Nopeach0 <103289999+Nopeach0@users.noreply.github.com>
+Date:   Thu Mar 12 16:31:36 2026 +1300
+
+    Initial commit
