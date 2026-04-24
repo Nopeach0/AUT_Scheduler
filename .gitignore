@@ -1,5 +1,29 @@
+# Environment & secrets
 .env
+*.env
+
+# Database credentials
+includes/config.php
+
+# SSL certificates
+includes/*.pem
+includes/*.crt
+includes/*.key
+*.pem
+*.crt
+*.key
+
+# OS files
 .DS_Store
 Thumbs.db
+
+# Editor files
 .vscode/
 .idea/
+
+# XAMPP / local server copy
+# (work from the Desktop project, not htdocs)
+
+# PHP logs & uploads
+*.log
+uploads/
