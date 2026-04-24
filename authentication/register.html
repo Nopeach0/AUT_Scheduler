@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="/assets/images/logo.png">
+    <link rel="icon" href="../assets/images/logo.png">
 
     <title>Register</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
     <link href="signin.css" rel="stylesheet">
@@ -19,7 +19,7 @@
 
 <body class="text-center">
     <form class="form-signin" id="registerForm">
-        <img class="mb-4" src="/assets/images/logo.png" alt="logo" width="100" height="100">
+        <img class="mb-4" src="../assets/images/logo.png" alt="logo" width="100" height="100">
         <h1 class="h3 mb-3 font-weight-normal">Create an account</h1>
 
         <label for="inputName" class="sr-only">Full Name</label>
@@ -54,7 +54,7 @@
             const data = new FormData(this);
 
             try {
-                const res = await fetch('/api/auth/register.php', { method: 'POST', body: data });
+                const res = await fetch('../api/auth/register.php', { method: 'POST', body: data });
 
                 if (!res.ok) {
                     throw new Error('Server error (' + res.status + ')');
@@ -63,7 +63,7 @@
                 const json = await res.json();
 
                 if (json.success) {
-                    window.location.href = '/index.html';
+                    window.location.href = '../index.html';
                 } else {
                     errorDiv.textContent = json.error || 'Registration failed';
                     errorDiv.classList.remove('d-none');
