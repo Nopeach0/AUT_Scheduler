@@ -1,1 +1,321 @@
+<!-- filepath: c:\Users\OEM\Downloads\AUT_Scheduler-main\AUT_Scheduler-main\files\calender.html -->
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Large Calendar</title>
+	<!-- Add Bootstrap CSS -->
+	<link href="dist/css/bootstrap.min.css" rel="stylesheet">
+	<style>
+		:root {
+			font-family: Roboto, Arial, Helvetica, sans-serif;
+			color: #202124;
+		}
+
+		body {
+			margin: 0;
+			background: #f5f7fa;
+			display: flex;
+			align-items: flex-start;
+			justify-content: center;
+			padding: 28px;
+		}
+
+		.calendar {
+			background: #fff;
+			width: 100%;
+			max-width: 980px;
+			border-radius: 8px;
+			box-shadow: 0 8px 30px rgba(35, 41, 46, 0.08);
+			overflow: hidden;
+		}
+
+		.header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 18px 22px;
+			border-bottom: 1px solid #e8eef5;
+		}
+
+		.header-left {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+		}
+
+		.header h1 {
+			font-size: 20px;
+			margin: 0;
+			font-weight: 500;
+		}
+
+		.header .controls {
+			display: flex;
+			gap: 8px;
+			align-items: center;
+		}
+
+		.header .controls button {
+			background: #fff;
+			border: 1px solid #d0d7de;
+			padding: 8px 10px;
+			border-radius: 6px;
+			cursor: pointer;
+			font-size: 14px;
+		}
+
+		.header .controls .primary {
+			background: #1a73e8;
+			color: #fff;
+			border-color: transparent;
+		}
+
+		.toolbar {
+			display: flex;
+			gap: 8px;
+			align-items: center;
+		}
+
+		.weekdays {
+			display: grid;
+			grid-template-columns: repeat(7, 1fr);
+			background: #fff;
+			border-bottom: 1px solid #e8eef5;
+		}
+
+		.weekdays div {
+			padding: 14px 12px;
+			text-align: left;
+			font-weight: 600;
+			color: #5f6368;
+			font-size: 13px;
+		}
+
+		.days {
+			display: grid;
+			grid-template-columns: repeat(7, 1fr);
+			grid-auto-rows: 120px;
+			gap: 0;
+		}
+
+		.day {
+			border-right: 1px solid #eef3f8;
+			border-bottom: 1px solid #eef3f8;
+			padding: 8px;
+			box-sizing: border-box;
+			position: relative;
+			background: #fff;
+		}
+
+		.day:nth-child(7n) {
+			border-right: none;
+		}
+
+		.day.other-month {
+			background: #fbfdff;
+			color: #9aa0a6;
+		}
+
+		.date-badge {
+			position: absolute;
+			top: 8px;
+			right: 8px;
+			background: transparent;
+			color: #5f6368;
+			font-weight: 600;
+			padding: 4px 7px;
+			border-radius: 10px;
+			font-size: 13px;
+		}
+
+		.day.today {
+			background: linear-gradient(180deg, #e8f0fe, #cfe3fd);
+			border-left: 4px solid #1a73e8;
+		}
+
+		.day .content {
+			margin-top: 28px;
+			font-size: 14px;
+			color: #273238;
+			min-height: 60px;
+		}
+
+		.day:hover {
+			background: #f6f9ff;
+		}
+
+		.footer {
+			padding: 12px 18px;
+			text-align: right;
+			color: #666;
+			font-size: 13px;
+			border-top: 1px solid #eef3f8;
+		}
+
+		@media (max-width:1000px) {
+			.calendar {
+				width: 100%;
+				margin: 0 12px;
+			}
+
+			.days {
+				grid-auto-rows: 100px;
+			}
+		}
+	</style>
+</head>
+
+<body>
+	<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+		<div class="container-fluid">
+			<a class="navbar-brand" href="files/profile.html">P</a>
+			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExampleDefault"
+				aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+
+			<div class="collapse navbar-collapse" id="navbarsExampleDefault">
+				<ul class="navbar-nav me-auto mb-2 mb-md-0">
+					<li class="nav-item active">
+						<a class="nav-link" href="index.html">Home</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="files/ai-assistant.html">AI-Assistant</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="files/events.html">Events</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="files/calendar.html">Calendar <span class="visually-hidden">(current)</span></a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="files/profile.html">Profile</a>
+					</li>
+				</ul>
+				<a href="api/auth/logout.php" class="btn btn-outline-danger ms-2">Sign out</a>
+			</div>
+		</div>
+	</nav>
+	<div class="calendar" aria-label="Calendar">
+		<div class="header">
+			<div class="header-left">
+				<div class="controls">
+					<button id="prevBtn" class="btn btn-outline-secondary" aria-label="Previous month">◀</button>
+					<button id="nextBtn" class="btn btn-outline-secondary" aria-label="Next month">▶</button>
+				</div>
+				<h1 id="monthYear" class="m-0">Month Year</h1>
+			</div>
+			<div class="toolbar d-flex align-items-center" style="gap:8px;">
+				<button id="todayBtn" class="btn btn-primary">Today</button>
+				<select id="viewSelect" class="form-select form-select-sm" style="width:110px;"
+					aria-label="Calendar view">
+					<option>Month</option>
+					<option>Week</option>
+					<option>Day</option>
+				</select>
+			</div>
+		</div>
+
+		<div class="weekdays" aria-hidden="true">
+			<div>Sunday</div>
+			<div>Monday</div>
+			<div>Tuesday</div>
+			<div>Wednesday</div>
+			<div>Thursday</div>
+			<div>Friday</div>
+			<div>Saturday</div>
+		</div>
+
+		<div class="days" id="daysGrid" role="grid" aria-label="Days"></div>
+
+		<div class="footer">
+			<div id="info">Click any day to select. Use the arrows to change month.</div>
+		</div>
+	</div>
+
+	<script>
+		// Larger calendar rendering with date badges
+		const monthYear = document.getElementById('monthYear');
+		const daysGrid = document.getElementById('daysGrid');
+		const prevBtn = document.getElementById('prevBtn');
+		const nextBtn = document.getElementById('nextBtn');
+		const todayBtn = document.getElementById('todayBtn');
+		const info = document.getElementById('info');
+
+		const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+		let now = new Date();
+		let viewYear = now.getFullYear();
+		let viewMonth = now.getMonth();
+
+		function renderCalendar(year, month) {
+			daysGrid.innerHTML = '';
+			monthYear.textContent = `${monthNames[month]} ${year}`;
+
+			const firstDay = new Date(year, month, 1).getDay();
+			const daysInMonth = new Date(year, month + 1, 0).getDate();
+			const prevMonthDays = new Date(year, month, 0).getDate();
+
+			// previous month cells
+			for (let i = firstDay - 1; i >= 0; i--) {
+				const cell = document.createElement('div');
+				cell.className = 'day other-month';
+				cell.innerHTML = `<div class="date-badge">${prevMonthDays - i}</div><div class="content"></div>`;
+				daysGrid.appendChild(cell);
+			}
+
+			// current month
+			for (let d = 1; d <= daysInMonth; d++) {
+				const cell = document.createElement('div');
+				cell.className = 'day';
+				cell.innerHTML = `<div class="date-badge">${d}</div><div class="content" data-day="${d}"></div>`;
+				const isToday = (year === now.getFullYear() && month === now.getMonth() && d === now.getDate());
+				if (isToday) cell.classList.add('today');
+				cell.addEventListener('click', () => {
+					info.textContent = `Selected: ${monthNames[month]} ${d}, ${year}`;
+					// highlight selection briefly
+					cell.style.boxShadow = 'inset 0 0 0 2px rgba(26,115,232,0.15)';
+					setTimeout(() => cell.style.boxShadow = '', 800);
+				});
+				daysGrid.appendChild(cell);
+			}
+
+			// next month fillers
+			const totalCells = daysGrid.childElementCount;
+			const toAdd = (totalCells % 7 === 0) ? 0 : (7 - (totalCells % 7));
+			for (let i = 1; i <= toAdd; i++) {
+				const cell = document.createElement('div');
+				cell.className = 'day other-month';
+				cell.innerHTML = `<div class="date-badge">${i}</div><div class="content"></div>`;
+				daysGrid.appendChild(cell);
+			}
+		}
+
+		prevBtn.addEventListener('click', () => {
+			viewMonth--;
+			if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+			renderCalendar(viewYear, viewMonth);
+		});
+		nextBtn.addEventListener('click', () => {
+			viewMonth++;
+			if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+			renderCalendar(viewYear, viewMonth);
+		});
+		todayBtn.addEventListener('click', () => {
+			now = new Date();
+			viewYear = now.getFullYear();
+			viewMonth = now.getMonth();
+			renderCalendar(viewYear, viewMonth);
+			info.textContent = `Showing current month`;
+		});
+
+		renderCalendar(viewYear, viewMonth);
+	</script>
+	<!-- add bootstrap bundle for collapse support -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
