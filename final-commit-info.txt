@@ -1,0 +1,15 @@
+Fixed includes/db.php — suppress errors, SSL fallback, auto-create tables
+
+Fixed api/auth/login.php and register.php — error suppression + session handling
+
+Fixed api/calendar/events.php — error suppression + MySQL error handling
+
+Created assets/css/app.css — global design system
+
+Rewrote authentication/signin.html + register.html — Bootstrap 5, consistent design, fixed error handling
+
+Rewrote index.html — Bootstrap 5, auth-aware dashboard
+
+Created skeleton pages — files/events.html, ai-assistant.html, profile.html
+
+Wrote unit tests — tests/AuthTest.php, CalendarTest.php, run_tests.php
