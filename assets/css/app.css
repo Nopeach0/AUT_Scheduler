@@ -1,0 +1,211 @@
+/**
+ * app.css — Kea Buddy global design system
+ *
+ * Shared styles used across every page:
+ *  - CSS variables (colour palette, radii, font)
+ *  - Navbar customisation
+ *  - Card / panel helpers
+ *  - Auth-page layout
+ *  - Skeleton loading animation
+ *  - Note-category colour badges
+ *  - Utility classes
+ */
+
+/* ── Design tokens ─────────────────────────────────────────────── */
+:root {
+    --primary:        #1a73e8;
+    --primary-hover:  #1557c0;
+    --bg:             #f5f7fa;
+    --surface:        #ffffff;
+    --border:         #eef3f8;
+    --text:           #202124;
+    --text-muted:     #5f6368;
+    --radius:         10px;
+    --shadow:         0 4px 20px rgba(0, 0, 0, .08);
+    --font:           Roboto, Arial, Helvetica, sans-serif;
+
+    /* Category colours */
+    --cat-assignment: #dc3545;
+    --cat-meeting:    #0d6efd;
+    --cat-study:      #198754;
+    --cat-other:      #6c757d;
+}
+
+/* ── Base ──────────────────────────────────────────────────────── */
+body {
+    font-family: var(--font);
+    background:  var(--bg);
+    color:       var(--text);
+    min-height:  100vh;
+    display:     flex;
+    flex-direction: column;
+}
+
+main { flex: 1; }
+
+a { color: var(--primary); }
+
+/* ── Navbar ────────────────────────────────────────────────────── */
+.navbar-brand {
+    font-weight: 700;
+    font-size:   1.15rem;
+    letter-spacing: -.01em;
+}
+
+/* Active nav link gets a subtle underline */
+.navbar-nav .nav-link.active {
+    font-weight:    600;
+    border-bottom:  2px solid var(--primary);
+    padding-bottom: 2px;
+}
+
+/* ── Cards ─────────────────────────────────────────────────────── */
+.app-card {
+    border:        none;
+    border-radius: var(--radius);
+    box-shadow:    var(--shadow);
+}
+
+/* ── Auth pages ────────────────────────────────────────────────── */
+.auth-wrapper {
+    min-height:      calc(100vh - 56px); /* subtract navbar height */
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    padding:         2rem 1rem;
+}
+
+.auth-card {
+    width:     100%;
+    max-width: 440px;
+}
+
+.auth-card .card-body { padding: 2rem; }
+
+.auth-logo {
+    width:         72px;
+    height:        72px;
+    object-fit:    contain;
+    margin-bottom: 1rem;
+}
+
+/* ── Skeleton loading animation ───────────────────────────────── */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        #e8eaed 25%,
+        #d8dade 50%,
+        #e8eaed 75%
+    );
+    background-size: 300% 100%;
+    animation: skeleton-wave 1.6s ease-in-out infinite;
+    border-radius: 4px;
+    display: block;
+}
+
+@keyframes skeleton-wave {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.sk-text  { height: 14px; margin-bottom: 8px; border-radius: 3px; }
+.sk-title { height: 22px; margin-bottom: 12px; border-radius: 3px; }
+.sk-card  { border-radius: var(--radius); }
+.sk-avatar{
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* ── Category colour system ───────────────────────────────────── */
+.cat-badge {
+    display:       inline-block;
+    padding:       2px 8px;
+    border-radius: 20px;
+    font-size:     11px;
+    font-weight:   600;
+    color:         #fff;
+}
+.cat-assignment { background: var(--cat-assignment); }
+.cat-meeting    { background: var(--cat-meeting);    }
+.cat-study      { background: var(--cat-study);      }
+.cat-other      { background: var(--cat-other);      }
+
+/* ── Page header ───────────────────────────────────────────────── */
+.page-header {
+    padding:    1.5rem 0 .75rem;
+}
+.page-header h2 {
+    font-size:   1.5rem;
+    font-weight: 700;
+    margin:      0;
+}
+.page-header p {
+    color:       var(--text-muted);
+    font-size:   .9rem;
+    margin:      .25rem 0 0;
+}
+
+/* ── Dashboard quick-link cards ──────────────────────────────── */
+.quick-card {
+    border:        none;
+    border-radius: var(--radius);
+    box-shadow:    var(--shadow);
+    transition:    transform .15s, box-shadow .15s;
+    text-decoration: none;
+    color:         inherit;
+    display:       block;
+}
+.quick-card:hover {
+    transform:  translateY(-3px);
+    box-shadow: 0 8px 28px rgba(0,0,0,.12);
+    color:      inherit;
+}
+.quick-card .icon {
+    font-size:     2rem;
+    margin-bottom: .5rem;
+}
+
+/* ── Upcoming-note list item (sidebar + dashboard) ───────────── */
+.upcoming-item {
+    padding:       8px 10px;
+    border-radius: 8px;
+    cursor:        pointer;
+    transition:    background .12s;
+}
+.upcoming-item:hover { background: #f0f5ff; }
+.cat-dot {
+    width:      10px;
+    height:     10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display:    inline-block;
+}
+
+/* ── Site footer ───────────────────────────────────────────────── */
+.site-footer {
+    text-align:  center;
+    padding:     1.25rem;
+    font-size:   .78rem;
+    color:       var(--text-muted);
+    border-top:  1px solid var(--border);
+    margin-top:  auto;
+}
+
+/* ── "Coming soon" placeholder ────────────────────────────────── */
+.coming-soon-wrap {
+    min-height:      55vh;
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    flex-direction:  column;
+    gap:             .75rem;
+    color:           var(--text-muted);
+}
+.coming-soon-wrap .icon-lg { font-size: 3.5rem; }
+
+/* ── Responsive tweaks ─────────────────────────────────────────── */
+@media (max-width: 576px) {
+    .auth-card .card-body { padding: 1.5rem; }
+    .page-header h2       { font-size: 1.25rem; }
+}

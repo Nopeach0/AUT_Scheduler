@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Profile — Kea Buddy</title>
+    <link rel="icon" href="../assets/images/logo.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../assets/css/app.css" rel="stylesheet">
+    <style>
+        /* Avatar initials circle */
+        .avatar-circle {
+            width:  80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--primary, #1a73e8);
+            color: #fff;
+            font-size: 2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* Stat boxes */
+        .stat-box {
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            background: #f5f7fa;
+        }
+        .stat-box .num { font-size: 1.8rem; font-weight: 700; color: var(--primary,#1a73e8); }
+        .stat-box .lbl { font-size: .78rem; color: #5f6368; margin: 0; }
+    </style>
+</head>
+<body>
+
+<!-- ── Navbar ─────────────────────────────────────────────────── -->
+<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="../index.html">&#128038; Kea Buddy</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                <li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="ai-assistant.html">AI Assistant</a></li>
+                <li class="nav-item"><a class="nav-link" href="events.html">Events</a></li>
+                <li class="nav-item"><a class="nav-link" href="calendar.html">Calendar</a></li>
+                <li class="nav-item"><a class="nav-link active" href="profile.html">Profile</a></li>
+            </ul>
+            <div id="auth-nav"></div>
+        </div>
+    </div>
+</nav>
+
+<main class="container py-4" style="max-width:900px">
+
+    <div class="page-header">
+        <h2>&#128100; My Profile</h2>
+        <p>Manage your account and view your schedule statistics</p>
+    </div>
+
+    <!-- Not-logged-in state (hidden when logged in) -->
+    <div id="guestPanel" class="text-center py-5" style="display:none">
+        <div style="font-size:3rem">&#128274;</div>
+        <h5 class="fw-bold mt-2">Sign in to view your profile</h5>
+        <p class="text-muted">Create an account to save your notes across devices.</p>
+        <a href="../authentication/signin.html" class="btn btn-primary me-2">Sign In</a>
+        <a href="../authentication/register.html" class="btn btn-outline-secondary">Register</a>
+    </div>
+
+    <!-- Logged-in profile content (skeleton while loading) -->
+    <div id="profilePanel">
+
+        <div class="row g-4">
+
+            <!-- Profile card -->
+            <div class="col-12 col-md-4">
+                <div class="card app-card p-4 text-center">
+                    <!-- Avatar -->
+                    <div class="d-flex justify-content-center mb-3">
+                        <div class="avatar-circle skeleton" id="avatarSkeleton" style="color:transparent">XX</div>
+                        <div class="avatar-circle" id="avatarCircle" style="display:none">?</div>
+                    </div>
+
+                    <!-- Name / email skeleton -->
+                    <span class="skeleton sk-title d-block w-75 mx-auto mb-1" id="nameSkeleton"></span>
+                    <span class="skeleton sk-text  d-block w-60 mx-auto mb-3" id="emailSkeleton"></span>
+
+                    <!-- Filled name / email (hidden until loaded) -->
+                    <h5 class="fw-bold mb-0" id="profileName" style="display:none"></h5>
+                    <p class="text-muted small" id="profileEmail" style="display:none"></p>
+
+                    <a href="../api/auth/logout.php" class="btn btn-outline-danger btn-sm w-100 mt-3">
+                        Sign Out
+                    </a>
+                </div>
+            </div>
+
+            <!-- Stats + settings -->
+            <div class="col-12 col-md-8">
+
+                <!-- Stats row -->
+                <div class="card app-card mb-4">
+                    <div class="card-header bg-white py-2">
+                        <h6 class="mb-0 fw-bold">&#128202; Your Stats</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3" id="statsRow">
+                            <!-- Skeleton stats -->
+                            <div class="col-4">
+                                <div class="stat-box">
+                                    <span class="skeleton d-block mx-auto mb-1" style="height:28px;width:40px;border-radius:4px"></span>
+                                    <p class="lbl">Total notes</p>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-box">
+                                    <span class="skeleton d-block mx-auto mb-1" style="height:28px;width:40px;border-radius:4px"></span>
+                                    <p class="lbl">This week</p>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-box">
+                                    <span class="skeleton d-block mx-auto mb-1" style="height:28px;width:40px;border-radius:4px"></span>
+                                    <p class="lbl">Assignments</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account settings (Sprint 2 placeholder) -->
+                <div class="card app-card">
+                    <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold">&#9881;&#65039; Account Settings</h6>
+                        <span class="badge bg-secondary">Sprint 2</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Full name</label>
+                            <input type="text" class="form-control" id="settingName" disabled placeholder="Loading…">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Email address</label>
+                            <input type="email" class="form-control" id="settingEmail" disabled placeholder="Loading…">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">New password</label>
+                            <input type="password" class="form-control" disabled placeholder="Coming in Sprint 2">
+                        </div>
+                        <button class="btn btn-primary btn-sm" disabled>Save changes (Sprint 2)</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Category breakdown -->
+        <div class="card app-card mt-4">
+            <div class="card-header bg-white py-2">
+                <h6 class="mb-0 fw-bold">&#128203; Notes by Category</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3" id="catBreakdown">
+                    <!-- Skeleton rows -->
+                    <div class="col-6 col-md-3">
+                        <div class="stat-box">
+                            <span class="skeleton d-block mx-auto mb-1" style="height:24px;width:36px;border-radius:4px"></span>
+                            <p class="lbl">Assignment</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="stat-box">
+                            <span class="skeleton d-block mx-auto mb-1" style="height:24px;width:36px;border-radius:4px"></span>
+                            <p class="lbl">Meeting</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="stat-box">
+                            <span class="skeleton d-block mx-auto mb-1" style="height:24px;width:36px;border-radius:4px"></span>
+                            <p class="lbl">Study</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="stat-box">
+                            <span class="skeleton d-block mx-auto mb-1" style="height:24px;width:36px;border-radius:4px"></span>
+                            <p class="lbl">Other</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /profilePanel -->
+
+</main>
+
+<footer class="site-footer">&copy; 2026 Kea Buddy &mdash; Auckland University of Technology</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/**
+ * profile.html — loads user info and note stats from the API.
+ *
+ * Skeleton UI is shown during loading; it is replaced with real
+ * data once the API calls resolve.  If the user is not logged in,
+ * the guest panel is shown instead.
+ */
+document.addEventListener('DOMContentLoaded', async () => {
+    // ── 1. Auth check ──────────────────────────────────────────
+    let user  = null;
+    let notes = [];
+
+    try {
+        const authData = await (await fetch('../api/auth/check.php', { credentials: 'same-origin' })).json();
+        if (!authData.logged_in) {
+            showGuest(); return;
+        }
+        user = authData.user;
+    } catch {
+        showGuest(); return;
+    }
+
+    // ── 2. Load notes for stats ────────────────────────────────
+    try {
+        const nd = await (await fetch('../api/calendar/events.php', { credentials: 'same-origin' })).json();
+        notes = Array.isArray(nd) ? nd : [];
+    } catch { notes = []; }
+
+    // ── 3. Render profile ──────────────────────────────────────
+    renderProfile(user, notes);
+    renderNav(user);
+});
+
+/** Replace skeleton with real profile data */
+function renderProfile(user, notes) {
+    const initials = user.name.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+
+    // Avatar
+    document.getElementById('avatarSkeleton').style.display = 'none';
+    const av = document.getElementById('avatarCircle');
+    av.textContent  = initials;
+    av.style.display = 'flex';
+
+    // Name / email
+    document.getElementById('nameSkeleton').style.display  = 'none';
+    document.getElementById('emailSkeleton').style.display = 'none';
+
+    const nameEl  = document.getElementById('profileName');
+    nameEl.textContent  = user.name;
+    nameEl.style.display = '';
+
+    const emailEl = document.getElementById('profileEmail');
+    emailEl.textContent  = user.email;
+    emailEl.style.display = '';
+
+    // Settings form pre-fill
+    document.getElementById('settingName').value  = user.name;
+    document.getElementById('settingEmail').value = user.email;
+
+    // ── Stats ──────────────────────────────────────────────────
+    const now    = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 86400000);
+    const fmtD   = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+    const total      = notes.length;
+    const thisWeek   = notes.filter(n => n.note_date >= fmtD(weekAgo) && n.note_date <= fmtD(now)).length;
+    const assignments = notes.filter(n => n.category === 'assignment').length;
+
+    document.getElementById('statsRow').innerHTML = `
+        <div class="col-4"><div class="stat-box"><div class="num">${total}</div><p class="lbl">Total notes</p></div></div>
+        <div class="col-4"><div class="stat-box"><div class="num">${thisWeek}</div><p class="lbl">This week</p></div></div>
+        <div class="col-4"><div class="stat-box"><div class="num">${assignments}</div><p class="lbl">Assignments</p></div></div>`;
+
+    // ── Category breakdown ─────────────────────────────────────
+    const cats = { assignment: 0, meeting: 0, study: 0, other: 0 };
+    notes.forEach(n => { if (cats[n.category] !== undefined) cats[n.category]++; else cats.other++; });
+
+    document.getElementById('catBreakdown').innerHTML = `
+        <div class="col-6 col-md-3"><div class="stat-box"><div class="num" style="color:#dc3545">${cats.assignment}</div><p class="lbl">Assignment</p></div></div>
+        <div class="col-6 col-md-3"><div class="stat-box"><div class="num" style="color:#0d6efd">${cats.meeting}</div><p class="lbl">Meeting</p></div></div>
+        <div class="col-6 col-md-3"><div class="stat-box"><div class="num" style="color:#198754">${cats.study}</div><p class="lbl">Study</p></div></div>
+        <div class="col-6 col-md-3"><div class="stat-box"><div class="num" style="color:#6c757d">${cats.other}</div><p class="lbl">Other</p></div></div>`;
+}
+
+/** Show guest (not-logged-in) state */
+function showGuest() {
+    document.getElementById('profilePanel').style.display = 'none';
+    document.getElementById('guestPanel').style.display   = '';
+    renderNavGuest();
+}
+
+/** Render logged-in user dropdown in navbar */
+function renderNav(user) {
+    document.getElementById('auth-nav').innerHTML = `
+      <div class="dropdown ms-3">
+        <button class="btn btn-outline-light btn-sm dropdown-toggle" data-bs-toggle="dropdown">${esc(user.name)}</button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item active" href="profile.html">Profile</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item text-danger" href="../api/auth/logout.php">Sign Out</a></li>
+        </ul>
+      </div>`;
+}
+
+/** Render guest nav buttons */
+function renderNavGuest() {
+    document.getElementById('auth-nav').innerHTML = `
+      <div class="d-flex gap-2 ms-3">
+        <a href="../authentication/signin.html" class="btn btn-outline-light btn-sm">Sign In</a>
+        <a href="../authentication/register.html" class="btn btn-primary btn-sm">Register</a>
+      </div>`;
+}
+
+function esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

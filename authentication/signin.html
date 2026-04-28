@@ -1,80 +1,140 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign In — Kea Buddy</title>
     <link rel="icon" href="../assets/images/logo.png">
-
-    <title>Signin</title>
-
-    <!-- Bootstrap core CSS -->
-    <link href="../dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Custom styles for this template -->
-    <link href="signin.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../assets/css/app.css" rel="stylesheet">
 </head>
+<body>
 
-<body class="text-center">
-    <form class="form-signin" id="signinForm">
-        <img class="mb-4" src="../assets/images/logo.png" alt="logo" width="100" height="100">
-        <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
-        <label for="inputEmail" class="sr-only">Email address</label>
-        <input type="email" id="inputEmail" name="email" class="form-control" placeholder="Email address" required autofocus>
-        <label for="inputPassword" class="sr-only">Password</label>
-        <input type="password" id="inputPassword" name="password" class="form-control" placeholder="Password" required>
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <label class="mb-0">
-                <input type="checkbox" name="remember" value="1"> Remember me
-            </label>
-            <a href="forgot-password.html">Forgot password?</a>
+<!-- Minimal navbar so users can navigate back -->
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="../index.html">&#128038; Kea Buddy</a>
+        <a href="register.html" class="btn btn-outline-light btn-sm">Create account</a>
+    </div>
+</nav>
+
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="card app-card">
+            <div class="card-body text-center">
+
+                <img src="../assets/images/logo.png" alt="Kea Buddy logo" class="auth-logo">
+                <h1 class="h4 fw-bold mb-1">Welcome back</h1>
+                <p class="text-muted small mb-4">Sign in to access your schedule</p>
+
+                <!-- Error alert — hidden until needed -->
+                <div id="errorAlert" class="alert alert-danger text-start py-2 d-none" role="alert"></div>
+                <!-- Success alert -->
+                <div id="successAlert" class="alert alert-success text-start py-2 d-none" role="alert"></div>
+
+                <form id="signinForm" novalidate>
+                    <div class="mb-3 text-start">
+                        <label for="inputEmail" class="form-label fw-semibold">Email address</label>
+                        <input type="email" id="inputEmail" name="email"
+                               class="form-control" placeholder="you@example.com"
+                               autocomplete="email" required autofocus>
+                    </div>
+
+                    <div class="mb-3 text-start">
+                        <div class="d-flex justify-content-between">
+                            <label for="inputPassword" class="form-label fw-semibold">Password</label>
+                            <a href="forgot-password.html" class="small">Forgot password?</a>
+                        </div>
+                        <input type="password" id="inputPassword" name="password"
+                               class="form-control" placeholder="••••••••"
+                               autocomplete="current-password" required>
+                    </div>
+
+                    <div class="mb-4 text-start">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="remember" value="1" id="rememberMe">
+                            <label class="form-check-label" for="rememberMe">Remember me for 30 days</label>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary w-100" type="submit" id="signInBtn">
+                        Sign in
+                    </button>
+                </form>
+
+                <hr class="my-4">
+                <p class="small text-muted mb-0">
+                    Don&#39;t have an account?
+                    <a href="register.html" class="fw-semibold">Register for free</a>
+                </p>
+            </div>
         </div>
-        <div id="loginError" class="alert alert-danger d-none" role="alert"></div>
-        <button class="btn btn-lg btn-primary btn-block" type="submit" id="signInBtn">Sign in</button>
-        <br /><a href="register.html">Register account</a>
-    </form>
+    </div>
+</div>
 
-    <script>
-        document.getElementById('signinForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
+<footer class="site-footer">&copy; 2026 Kea Buddy &mdash; Auckland University of Technology</footer>
 
-            const btn      = document.getElementById('signInBtn');
-            const errorDiv = document.getElementById('loginError');
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/**
+ * signin.html — client-side login handler
+ *
+ * Submits credentials via fetch (FormData POST), then:
+ *  - On success  → redirects to the dashboard
+ *  - On failure  → displays the server error message in the alert div
+ *
+ * Always parses the JSON body regardless of HTTP status code so that
+ * backend error details (even 5xx) are shown to the user instead of
+ * the generic "Server error" fallback.
+ */
+document.getElementById('signinForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
 
-            btn.disabled    = true;
-            btn.textContent = 'Signing in...';
-            errorDiv.classList.add('d-none');
+    const btn      = document.getElementById('signInBtn');
+    const errDiv   = document.getElementById('errorAlert');
+    const okDiv    = document.getElementById('successAlert');
 
-            const data = new FormData(this);
+    // Reset state
+    errDiv.classList.add('d-none');
+    okDiv.classList.add('d-none');
+    btn.disabled    = true;
+    btn.innerHTML   = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Signing in…';
 
-            try {
-                const res = await fetch('../api/auth/login.php', { method: 'POST', body: data });
-
-                if (!res.ok) {
-                    throw new Error('Server error (' + res.status + ')');
-                }
-
-                const json = await res.json();
-
-                if (json.success) {
-                    window.location.href = '../index.html';
-                } else {
-                    errorDiv.textContent = json.error || 'Login failed';
-                    errorDiv.classList.remove('d-none');
-                }
-            } catch (err) {
-                errorDiv.textContent = err.message === 'Failed to fetch'
-                    ? 'Could not connect to server. Make sure the server is running.'
-                    : err.message;
-                errorDiv.classList.remove('d-none');
-            } finally {
-                btn.disabled    = false;
-                btn.textContent = 'Sign in';
-            }
+    try {
+        const res  = await fetch('../api/auth/login.php', {
+            method:      'POST',
+            body:        new FormData(this),
+            credentials: 'same-origin',  // ensure session cookie is sent
         });
-    </script>
-</body>
 
+        // Always parse JSON — the server returns JSON even on 5xx errors
+        let json;
+        try {
+            json = await res.json();
+        } catch {
+            throw new Error('Unexpected server response. Please try again.');
+        }
+
+        if (json.success) {
+            okDiv.textContent = 'Signed in successfully! Redirecting…';
+            okDiv.classList.remove('d-none');
+            setTimeout(() => { window.location.href = '../index.html'; }, 600);
+        } else {
+            // Show the specific error returned by the server
+            errDiv.textContent = json.error || 'Login failed. Please try again.';
+            errDiv.classList.remove('d-none');
+        }
+    } catch (err) {
+        // Network error or JSON parse failure
+        errDiv.textContent = err.message.includes('fetch')
+            ? 'Cannot reach the server. Check your internet connection.'
+            : err.message;
+        errDiv.classList.remove('d-none');
+    } finally {
+        btn.disabled  = false;
+        btn.innerHTML = 'Sign in';
+    }
+});
+</script>
+</body>
 </html>

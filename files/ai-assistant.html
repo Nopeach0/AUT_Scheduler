@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Assistant — Kea Buddy</title>
+    <link rel="icon" href="../assets/images/logo.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../assets/css/app.css" rel="stylesheet">
+    <style>
+        /* Chat-style layout */
+        .chat-wrap {
+            height: calc(100vh - 200px);
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .chat-bubble {
+            max-width: 75%;
+            padding: .65rem 1rem;
+            border-radius: 18px;
+            font-size: .92rem;
+            line-height: 1.5;
+        }
+        .chat-bubble.bot {
+            background: #f0f4ff;
+            color: #202124;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .chat-bubble.user {
+            background: var(--primary, #1a73e8);
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-input-area {
+            border-top: 1px solid #eef3f8;
+            padding: 1rem;
+            background: #fff;
+        }
+        /* Suggested prompt chips */
+        .prompt-chip {
+            cursor: pointer;
+            border-radius: 20px;
+            font-size: .82rem;
+            transition: background .12s;
+        }
+        .prompt-chip:hover { background: #e8f0fe !important; border-color: var(--primary,#1a73e8) !important; color: var(--primary,#1a73e8) !important; }
+    </style>
+</head>
+<body>
+
+<!-- ── Navbar ─────────────────────────────────────────────────── -->
+<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="../index.html">&#128038; Kea Buddy</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                <li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+                <li class="nav-item"><a class="nav-link active" href="ai-assistant.html">AI Assistant</a></li>
+                <li class="nav-item"><a class="nav-link" href="events.html">Events</a></li>
+                <li class="nav-item"><a class="nav-link" href="calendar.html">Calendar</a></li>
+                <li class="nav-item"><a class="nav-link" href="profile.html">Profile</a></li>
+            </ul>
+            <div id="auth-nav"></div>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4" style="max-width:860px">
+
+    <div class="page-header">
+        <h2>&#129302; AI Study Assistant</h2>
+        <p>Get smart study help, schedule suggestions, and academic advice</p>
+    </div>
+
+    <!-- Sprint-2 notice -->
+    <div class="alert alert-info d-flex align-items-center gap-3 mb-3">
+        <span style="font-size:1.4rem">&#128679;</span>
+        <div>
+            <strong>AI Assistant ships in Sprint 2.</strong>
+            The chat interface below shows the planned experience.
+        </div>
+    </div>
+
+    <!-- Chat interface skeleton / preview -->
+    <div class="card app-card overflow-hidden">
+
+        <!-- Chat messages area -->
+        <div class="chat-messages" id="chatMessages">
+
+            <!-- Bot greeting -->
+            <div class="d-flex align-items-end gap-2">
+                <span style="font-size:1.5rem;line-height:1">&#129302;</span>
+                <div class="chat-bubble bot">
+                    <strong>Kea Assistant</strong><br>
+                    Hi! I&#39;m your Kea Buddy AI assistant. I can help you study smarter,
+                    plan your assignments, and answer questions about your courses.
+                    <em>(Full AI integration coming in Sprint 2 — this is a preview.)</em>
+                </div>
+            </div>
+
+            <!-- Skeleton "typing" bubbles to fill the preview -->
+            <div class="d-flex align-items-end gap-2">
+                <span style="font-size:1.5rem;line-height:1">&#129302;</span>
+                <div class="chat-bubble bot">
+                    <span class="skeleton sk-text d-block w-75 mb-1"></span>
+                    <span class="skeleton sk-text d-block w-50"></span>
+                </div>
+            </div>
+
+            <div class="chat-bubble user">
+                <span class="skeleton d-block w-60" style="height:14px;background:rgba(255,255,255,.3);border-radius:3px"></span>
+            </div>
+
+            <div class="d-flex align-items-end gap-2">
+                <span style="font-size:1.5rem;line-height:1">&#129302;</span>
+                <div class="chat-bubble bot">
+                    <span class="skeleton sk-text d-block mb-1"></span>
+                    <span class="skeleton sk-text d-block w-80 mb-1"></span>
+                    <span class="skeleton sk-text d-block w-40"></span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Suggested prompts -->
+        <div class="px-3 pb-2 d-flex gap-2 flex-wrap">
+            <button class="btn btn-outline-secondary prompt-chip btn-sm" disabled>
+                &#128203; Help me plan my study schedule
+            </button>
+            <button class="btn btn-outline-secondary prompt-chip btn-sm" disabled>
+                &#9201;&#65039; How long should I study for an exam?
+            </button>
+            <button class="btn btn-outline-secondary prompt-chip btn-sm" disabled>
+                &#128218; Explain Pomodoro technique
+            </button>
+        </div>
+
+        <!-- Input area (disabled preview) -->
+        <div class="chat-input-area d-flex gap-2">
+            <input type="text" class="form-control"
+                   placeholder="Ask me anything about your studies… (coming in Sprint 2)"
+                   disabled>
+            <button class="btn btn-primary px-3" disabled>&#10148;&#65039;</button>
+        </div>
+    </div>
+
+    <!-- Planned features -->
+    <div class="row g-3 mt-3">
+        <div class="col-12 col-md-4">
+            <div class="card app-card p-3 text-center h-100">
+                <div style="font-size:2rem">&#128197;</div>
+                <h6 class="fw-bold mt-2">Smart Scheduling</h6>
+                <p class="text-muted small mb-0">Auto-create study blocks in your calendar based on assignment deadlines</p>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card app-card p-3 text-center h-100">
+                <div style="font-size:2rem">&#128218;</div>
+                <h6 class="fw-bold mt-2">Course Q&amp;A</h6>
+                <p class="text-muted small mb-0">Upload lecture notes and get instant answers to your questions</p>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card app-card p-3 text-center h-100">
+                <div style="font-size:2rem">&#128202;</div>
+                <h6 class="fw-bold mt-2">Progress Tracking</h6>
+                <p class="text-muted small mb-0">Weekly summaries of study hours and upcoming deadline alerts</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<footer class="site-footer">&copy; 2026 Kea Buddy &mdash; Auckland University of Technology</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/** Render auth navbar section */
+(async () => {
+    function esc(s) {
+        return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    try {
+        const d  = await (await fetch('../api/auth/check.php', { credentials: 'same-origin' })).json();
+        const el = document.getElementById('auth-nav');
+        if (d.logged_in && d.user) {
+            el.innerHTML = `
+              <div class="dropdown ms-3">
+                <button class="btn btn-outline-light btn-sm dropdown-toggle" data-bs-toggle="dropdown">${esc(d.user.name)}</button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><a class="dropdown-item" href="profile.html">Profile</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item text-danger" href="../api/auth/logout.php">Sign Out</a></li>
+                </ul>
+              </div>`;
+        } else {
+            el.innerHTML = `
+              <div class="d-flex gap-2 ms-3">
+                <a href="../authentication/signin.html" class="btn btn-outline-light btn-sm">Sign In</a>
+                <a href="../authentication/register.html" class="btn btn-primary btn-sm">Register</a>
+              </div>`;
+        }
+    } catch { /* server offline */ }
+})();
+</script>
+</body>
+</html>
