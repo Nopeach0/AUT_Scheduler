@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Calendar - Kea Buddy</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root { --primary: #1a73e8; --danger: #dc3545; --success: #198754; --secondary: #6c757d; }
+        body { background: #f5f7fa; font-family: Roboto, Arial, sans-serif; color: #202124; margin: 0; }
+
+        /* ── Banners ── */
+        #notif-banner, #local-banner {
+            border-radius: 0; margin: 0;
+            display: none; align-items: center; gap: 12px;
+        }
+        #notif-banner { border-left: none; border-right: none; border-top: none; }
+
+        /* ── Calendar card ── */
+        .calendar-card { border-radius: 10px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,.08); }
+
+        /* ── Weekday header row ── */
+        .weekday-row {
+            display: grid; grid-template-columns: repeat(7, 1fr);
+            background: #fff; border-bottom: 1px solid #eef3f8;
+        }
+        .weekday-cell {
+            padding: 10px 4px; text-align: center; font-weight: 600;
+            font-size: 12px; color: #5f6368; text-transform: uppercase; letter-spacing: .04em;
+        }
+        .weekday-cell.is-today-col { color: var(--primary); }
+
+        /* ── Month view ── */
+        #daysGrid.month-view {
+            display: grid; grid-template-columns: repeat(7, 1fr);
+        }
+        .day-cell {
+            border-right: 1px solid #eef3f8; border-bottom: 1px solid #eef3f8;
+            padding: 6px; min-height: 108px; cursor: pointer;
+            background: #fff; transition: background .12s; position: relative;
+        }
+        .day-cell:nth-child(7n) { border-right: none; }
+        .day-cell:hover { background: #f0f5ff; }
+        .day-cell.other-month { background: #fafbfc; color: #9aa0a6; }
+        .day-cell.other-month:hover { background: #f5f7fb; }
+        .day-cell.is-today { background: linear-gradient(170deg,#e8f0fe,#d0e4fd); border-left: 3px solid var(--primary); }
+        .date-num { font-size: 12px; font-weight: 600; color: #5f6368; text-align: right; line-height: 1; }
+        .date-num.today-circle {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 22px; height: 22px; border-radius: 50%;
+            background: var(--primary); color: #fff; font-size: 11px; float: right;
+        }
+        .day-notes { margin-top: 4px; display: flex; flex-direction: column; gap: 2px; }
+        .note-chip {
+            font-size: 11px; padding: 2px 5px; border-radius: 3px; cursor: pointer;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            transition: opacity .12s; line-height: 1.5;
+        }
+        .note-chip:hover { opacity: .82; }
+        .note-chip.extra-chip { background: #e8eaed !important; color: #5f6368 !important; font-size: 10px; cursor: default; }
+
+        /* ── Week view ── */
+        #daysGrid.week-view {
+            display: grid; grid-template-columns: repeat(7, 1fr); min-height: 300px;
+        }
+        .week-col {
+            border-right: 1px solid #eef3f8; padding: 6px; cursor: pointer;
+            background: #fff; min-height: 240px;
+        }
+        .week-col:last-child { border-right: none; }
+        .week-col.is-today { background: #f0f5ff; }
+        .week-col:hover { background: #f5f8ff; }
+
+        /* ── Day view ── */
+        #daysGrid.day-view { background: #fff; }
+        .hour-row { display: flex; border-bottom: 1px solid #f2f2f2; min-height: 52px; }
+        .hour-label { width: 64px; padding: 6px 10px 0; font-size: 11px; color: #9aa0a6; text-align: right; flex-shrink: 0; }
+        .hour-events { flex: 1; padding: 4px 8px; cursor: pointer; }
+        .hour-events:hover { background: #f5f8ff; }
+
+        /* ── Sidebar ── */
+        .upcoming-item {
+            padding: 8px 10px; border-radius: 6px; cursor: pointer;
+            transition: background .12s; margin-bottom: 2px;
+        }
+        .upcoming-item:hover { background: #f0f5ff; }
+        .cat-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .day-cell { min-height: 70px; }
+            .weekday-cell { font-size: 10px; padding: 6px 2px; }
+            .note-chip { display: none; }
+            .day-cell::after { content: attr(data-count); font-size: 10px; color: var(--primary); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="../index.html">&#128038; Kea Buddy</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                <li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="ai-assistant.html">AI Assistant</a></li>
+                <li class="nav-item"><a class="nav-link" href="events.html">Events</a></li>
+                <li class="nav-item"><a class="nav-link active" href="calendar.html">Calendar</a></li>
+                <li class="nav-item"><a class="nav-link" href="profile.html">Profile</a></li>
+            </ul>
+            <div id="auth-nav"></div>
+        </div>
+    </div>
+</nav>
+
+<!-- ── Notification permission banner ── -->
+<div id="notif-banner" class="alert alert-info mb-0 px-3 py-2">
+    <span>&#128276; Enable notifications to get reminders for upcoming assignment deadlines.</span>
+    <div class="ms-auto d-flex gap-2">
+        <button class="btn btn-sm btn-info text-white" onclick="requestNotifPermission()">Enable</button>
+        <button class="btn btn-sm btn-outline-secondary" onclick="dismissNotifBanner()">Dismiss</button>
+    </div>
+</div>
+
+<!-- ── Not-logged-in banner ── -->
+<div id="local-banner" class="alert alert-warning mb-0 px-3 py-2 d-flex align-items-center gap-3">
+    <span>&#128274; You&#39;re not signed in. Notes are saved in this browser only.</span>
+    <a href="../authentication/signin.html" class="btn btn-sm btn-warning ms-auto">Sign In to Sync</a>
+</div>
+
+<!-- ── Main layout ── -->
+<div class="container-fluid p-3" style="max-width:1380px">
+    <div class="row g-3">
+
+        <!-- Sidebar -->
+        <div class="col-12 col-md-3">
+            <div class="card h-100 calendar-card">
+                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-2">
+                    <h6 class="mb-0 fw-bold">&#128337; Upcoming (7 days)</h6>
+                    <span class="badge rounded-pill bg-primary" id="upcoming-count">0</span>
+                </div>
+                <div class="card-body p-2 overflow-auto" style="max-height:70vh">
+                    <div id="upcoming-list">
+                        <p class="text-muted text-center small mt-4">No upcoming notes.<br>Click any day to add one.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar -->
+        <div class="col-12 col-md-9">
+            <div class="card calendar-card">
+
+                <!-- Calendar header -->
+                <div class="card-header bg-white border-bottom py-2">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <button id="prevBtn" class="btn btn-outline-secondary btn-sm px-3">&#9664;</button>
+                            <button id="nextBtn" class="btn btn-outline-secondary btn-sm px-3">&#9654;</button>
+                            <h5 id="monthYear" class="mb-0 fw-bold ms-1" style="min-width:180px">—</h5>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button id="todayBtn" class="btn btn-primary btn-sm">Today</button>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <input type="radio" class="btn-check" name="viewMode" id="vm-month" value="month" checked>
+                                <label class="btn btn-outline-secondary" for="vm-month">Month</label>
+                                <input type="radio" class="btn-check" name="viewMode" id="vm-week" value="week">
+                                <label class="btn btn-outline-secondary" for="vm-week">Week</label>
+                                <input type="radio" class="btn-check" name="viewMode" id="vm-day" value="day">
+                                <label class="btn btn-outline-secondary" for="vm-day">Day</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weekday headers -->
+                <div class="weekday-row" id="weekdayHeaders"></div>
+
+                <!-- Grid -->
+                <div id="daysGrid"></div>
+
+                <div class="card-footer bg-white text-muted small py-2">
+                    <span id="footerInfo">Click any day to add a note.</span>
+                    <span class="ms-3">
+                        <span class="note-chip d-inline-block px-2" style="background:#dc3545;color:#fff;border-radius:3px;font-size:11px">Assignment</span>
+                        <span class="note-chip d-inline-block px-2 ms-1" style="background:#0d6efd;color:#fff;border-radius:3px;font-size:11px">Meeting</span>
+                        <span class="note-chip d-inline-block px-2 ms-1" style="background:#198754;color:#fff;border-radius:3px;font-size:11px">Study</span>
+                        <span class="note-chip d-inline-block px-2 ms-1" style="background:#6c757d;color:#fff;border-radius:3px;font-size:11px">Other</span>
+                        <button id="viewFullYearBtn" style="background: #2d8cf0; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 12px; margin-left: 10px;">View the whole year</button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ── A pop-up window for the annual calendar ── -->
+ <div id="fullYearModal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.7); overflow-y:auto;">
+    <div style="background:white; margin:3% auto; padding:20px; width:90%; max-width:1200px; border-radius:10px; position:relative;">
+        <span id="closeModal" style="position:absolute; right:20px; top:15px; font-size:24px; cursor:pointer; color:#666;">&times;</span>
+        <h4 id="yearTitle" class="text-center mb-4"></h4>
+        <div id="fullYearCalendar" style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px;"></div>
+        <div class="text-center mt-4">
+            <button id="saveCalendarBtn" class="btn btn-success">Save as Image</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── Add / Edit Note Modal ── -->
+<div class="modal fade" id="noteModal" tabindex="-1" aria-labelledby="noteModalLabel">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="noteModalLabel">Add Note</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="noteId">
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="noteTitle" placeholder="e.g. COMP500 Assignment Due">
+                    <div class="invalid-feedback">Please enter a title.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Description</label>
+                    <textarea class="form-control" id="noteDesc" rows="2" placeholder="Optional details..."></textarea>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col">
+                        <label class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="noteDate">
+                    </div>
+                    <div class="col">
+                        <label class="form-label fw-semibold">Time</label>
+                        <input type="time" class="form-control" id="noteTime" value="09:00">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Category</label>
+                    <select class="form-select" id="noteCat">
+                        <option value="assignment">&#128196; Assignment Deadline</option>
+                        <option value="meeting">&#128101; Meeting</option>
+                        <option value="study">&#128218; Study Session</option>
+                        <option value="other" selected>&#128203; Other</option>
+                    </select>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label fw-semibold">&#128276; Reminder</label>
+                    <select class="form-select" id="noteReminder">
+                        <option value="0">No reminder</option>
+                        <option value="15">15 minutes before</option>
+                        <option value="30">30 minutes before</option>
+                        <option value="60">1 hour before</option>
+                        <option value="120">2 hours before</option>
+                        <option value="1440">1 day before</option>
+                        <option value="2880">2 days before</option>
+                    </select>
+                </div>
+
+                <div id="notifWarn" class="alert alert-warning py-2 small mb-0" style="display:none">
+                    &#9888;&#65039; Notifications are blocked.
+                    <button class="btn btn-sm btn-warning py-0 ms-1" onclick="requestNotifPermission()">Enable</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="deleteNoteBtn" class="btn btn-outline-danger btn-sm me-auto" style="display:none">&#128465; Delete</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button id="saveNoteBtn" class="btn btn-primary btn-sm">Save Note</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+// ================================================================
+// CONSTANTS
+// ================================================================
+const CAT = {
+    assignment: { bg: '#dc3545', fg: '#fff', label: 'Assignment' },
+    meeting:    { bg: '#0d6efd', fg: '#fff', label: 'Meeting'    },
+    study:      { bg: '#198754', fg: '#fff', label: 'Study'      },
+    other:      { bg: '#6c757d', fg: '#fff', label: 'Other'      }
+};
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const LS_KEY = 'kea_buddy_notes';
+
+// ================================================================
+// STATE
+// ================================================================
+const now     = new Date();
+let viewDate  = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+let view      = 'month';
+let notes     = {};        // { 'YYYY-MM-DD': [noteObj,...] }
+let noteReg   = new Map(); // id -> noteObj
+let isLoggedIn = false;
+let currentUser = null;
+let timers    = [];
+let bsModal   = null;
+
+// ================================================================
+// BOOT
+// ================================================================
+document.addEventListener('DOMContentLoaded', async () => {
+    bsModal = new bootstrap.Modal(document.getElementById('noteModal'));
+
+    // View toggle buttons
+    document.querySelectorAll('input[name="viewMode"]').forEach(r =>
+        r.addEventListener('change', e => { view = e.target.value; renderCalendar(); }));
+
+    document.getElementById('prevBtn').addEventListener('click', navPrev);
+    document.getElementById('nextBtn').addEventListener('click', navNext);
+    document.getElementById('todayBtn').addEventListener('click', goToday);
+    document.getElementById('saveNoteBtn').addEventListener('click', handleSave);
+    document.getElementById('deleteNoteBtn').addEventListener('click', handleDelete);
+    document.getElementById('noteReminder').addEventListener('change', refreshNotifWarn);
+
+    // Event delegation on grid and sidebar
+    document.getElementById('daysGrid').addEventListener('click', onGridClick);
+    document.getElementById('upcoming-list').addEventListener('click', onSidebarClick);
+
+    await checkAuth();
+    await loadNotes();
+    renderCalendar();
+    renderSidebar();
+    registerSW();
+    checkNotifBanner();
+});
+
+// ================================================================
+// AUTH
+// ================================================================
+async function checkAuth() {
+    try {
+        const r = await fetch('../api/auth/check.php');
+        const d = await r.json();
+        isLoggedIn  = !!d.logged_in;
+        currentUser = d.user || null;
+    } catch { isLoggedIn = false; }
+    updateNavAuth();
+}
+
+function updateNavAuth() {
+    const el = document.getElementById('auth-nav');
+    const lb = document.getElementById('local-banner');
+    if (isLoggedIn && currentUser) {
+        el.innerHTML = `
+          <div class="dropdown ms-3">
+            <button class="btn btn-outline-light btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+              ${esc(currentUser.name)}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="profile.html">Profile</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" href="../api/auth/logout.php">Sign Out</a></li>
+            </ul>
+          </div>`;
+        lb.style.display = 'none';
+    } else {
+        el.innerHTML = `
+          <div class="d-flex gap-2 ms-3">
+            <a href="../authentication/signin.html" class="btn btn-outline-light btn-sm">Sign In</a>
+            <a href="../authentication/register.html" class="btn btn-primary btn-sm">Register</a>
+          </div>`;
+        lb.style.display = 'flex';
+    }
+}
+
+// ================================================================
+// LOAD NOTES
+// ================================================================
+async function loadNotes() {
+    if (isLoggedIn) {
+        try {
+            const r = await fetch('../api/calendar/events.php');
+            const data = await r.json();
+            notes = {};
+            (Array.isArray(data) ? data : []).forEach(n => {
+                (notes[n.note_date] = notes[n.note_date] || []).push(n);
+            });
+        } catch { readLS(); }
+    } else { readLS(); }
+    buildRegistry();
+    scheduleAll();
+}
+
+function readLS() {
+    try { notes = JSON.parse(localStorage.getItem(LS_KEY) || '{}'); }
+    catch { notes = {}; }
+}
+
+function writeLS() { localStorage.setItem(LS_KEY, JSON.stringify(notes)); }
+
+function buildRegistry() {
+    noteReg.clear();
+    Object.values(notes).flat().forEach(n => noteReg.set(String(n.id), n));
+}
+
+// ================================================================
+// CRUD
+// ================================================================
+async function handleSave() {
+    const titleEl = document.getElementById('noteTitle');
+    const title   = titleEl.value.trim();
+    if (!title) { titleEl.classList.add('is-invalid'); return; }
+    titleEl.classList.remove('is-invalid');
+
+    const nd = {
+        id:               document.getElementById('noteId').value || null,
+        title,
+        description:      document.getElementById('noteDesc').value.trim(),
+        note_date:        document.getElementById('noteDate').value,
+        note_time:        document.getElementById('noteTime').value || '09:00',
+        category:         document.getElementById('noteCat').value,
+        reminder_minutes: parseInt(document.getElementById('noteReminder').value) || 0
+    };
+
+    if (!nd.note_date) { alert('Please pick a date.'); return; }
+
+    const btn = document.getElementById('saveNoteBtn');
+    btn.disabled = true; btn.textContent = 'Saving…';
+    try {
+        await persistNote(nd);
+        bsModal.hide();
+        renderCalendar();
+        renderSidebar();
+    } catch(e) {
+        alert('Could not save note. Check your connection.');
+    } finally {
+        btn.disabled = false; btn.textContent = 'Save Note';
+    }
+}
+
+async function persistNote(nd) {
+    if (isLoggedIn) {
+        const method = nd.id ? 'PUT' : 'POST';
+        const r = await fetch('../api/calendar/events.php', {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(nd)
+        });
+        const saved = await r.json();
+        if (!saved.id) throw new Error(saved.error || 'Save failed');
+
+        // Remove old entry if any (handles date change)
+        if (nd.id) removeFromLocal(nd.id);
+        (notes[saved.note_date] = notes[saved.note_date] || []).push(saved);
+        buildRegistry();
+        scheduleOne(saved);
+    } else {
+        if (nd.id) removeFromLocal(nd.id);
+        else nd.id = 'ls_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+        (notes[nd.note_date] = notes[nd.note_date] || []).push({...nd});
+        writeLS(); buildRegistry(); scheduleOne(nd);
+    }
+}
+
+async function handleDelete() {
+    const id = document.getElementById('noteId').value;
+    if (!id || !confirm('Delete this note?')) return;
+
+    if (isLoggedIn) {
+        await fetch('../api/calendar/events.php?id=' + encodeURIComponent(id), { method: 'DELETE' });
+    }
+    removeFromLocal(id);
+    if (!isLoggedIn) writeLS();
+    buildRegistry();
+    bsModal.hide();
+    renderCalendar();
+    renderSidebar();
+}
+
+function removeFromLocal(id) {
+    Object.keys(notes).forEach(d => {
+        notes[d] = (notes[d] || []).filter(n => String(n.id) !== String(id));
+        if (!notes[d].length) delete notes[d];
+    });
+}
+
+// ================================================================
+// MODAL HELPERS
+// ================================================================
+function openAdd(ds) {
+    document.getElementById('noteModalLabel').textContent = 'Add Note';
+    document.getElementById('noteId').value         = '';
+    document.getElementById('noteTitle').value      = '';
+    document.getElementById('noteTitle').classList.remove('is-invalid');
+    document.getElementById('noteDesc').value       = '';
+    document.getElementById('noteDate').value       = ds || fmt(now);
+    document.getElementById('noteTime').value       = '09:00';
+    document.getElementById('noteCat').value        = 'other';
+    document.getElementById('noteReminder').value   = '0';
+    document.getElementById('deleteNoteBtn').style.display = 'none';
+    refreshNotifWarn();
+    bsModal.show();
+}
+
+function openEdit(note) {
+    document.getElementById('noteModalLabel').textContent = 'Edit Note';
+    document.getElementById('noteId').value         = note.id;
+    document.getElementById('noteTitle').value      = note.title;
+    document.getElementById('noteTitle').classList.remove('is-invalid');
+    document.getElementById('noteDesc').value       = note.description || '';
+    document.getElementById('noteDate').value       = note.note_date;
+    document.getElementById('noteTime').value       = note.note_time || '09:00';
+    document.getElementById('noteCat').value        = note.category || 'other';
+    document.getElementById('noteReminder').value   = String(note.reminder_minutes || 0);
+    document.getElementById('deleteNoteBtn').style.display = '';
+    refreshNotifWarn();
+    bsModal.show();
+}
+
+function refreshNotifWarn() {
+    const v = document.getElementById('noteReminder').value;
+    document.getElementById('notifWarn').style.display =
+        (v !== '0' && 'Notification' in window && Notification.permission !== 'granted') ? '' : 'none';
+}
+
+// ================================================================
+// EVENT DELEGATION
+// ================================================================
+function onGridClick(e) {
+    const chip = e.target.closest('[data-note-id]');
+    if (chip) {
+        e.stopPropagation();
+        const n = noteReg.get(chip.dataset.noteId);
+        if (n) openEdit(n);
+        return;
+    }
+    const cell = e.target.closest('[data-date]');
+    if (cell) openAdd(cell.dataset.date);
+}
+
+function onSidebarClick(e) {
+    const item = e.target.closest('[data-note-id]');
+    if (item) {
+        const n = noteReg.get(item.dataset.noteId);
+        if (n) openEdit(n);
+    }
+}
+
+// ================================================================
+// RENDER — MONTH
+// ================================================================
+function renderCalendar() {
+    const hdr  = document.getElementById('weekdayHeaders');
+    const grid = document.getElementById('daysGrid');
+
+    if (view === 'month') {
+        document.getElementById('monthYear').textContent = `${MONTHS[viewDate.getMonth()]} ${viewDate.getFullYear()}`;
+        hdr.innerHTML = DAYS.map(d => `<div class="weekday-cell">${d.slice(0,3)}</div>`).join('');
+        grid.className = 'month-view';
+        grid.innerHTML = '';
+
+        const y = viewDate.getFullYear(), m = viewDate.getMonth();
+        const firstDay = new Date(y, m, 1).getDay();
+        const daysInMonth = new Date(y, m + 1, 0).getDate();
+        const prevTotal   = new Date(y, m, 0).getDate();
+
+        for (let i = firstDay - 1; i >= 0; i--) {
+            grid.appendChild(buildMonthCell(new Date(y, m - 1, prevTotal - i), true));
+        }
+        for (let d = 1; d <= daysInMonth; d++) {
+            grid.appendChild(buildMonthCell(new Date(y, m, d), false));
+        }
+        const filled = grid.childElementCount;
+        const rest = filled % 7 === 0 ? 0 : 7 - (filled % 7);
+        for (let i = 1; i <= rest; i++) {
+            grid.appendChild(buildMonthCell(new Date(y, m + 1, i), true));
+        }
+
+    } else if (view === 'week') {
+        renderWeek(hdr, grid);
+    } else {
+        renderDay(hdr, grid);
+    }
+}
+
+function buildMonthCell(d, other) {
+    const ds  = fmt(d);
+    const isT = ds === fmt(now);
+    const cell = document.createElement('div');
+    cell.className = 'day-cell' + (other ? ' other-month' : '') + (isT ? ' is-today' : '');
+    cell.dataset.date = ds;
+
+    const dayNotes   = notes[ds] || [];
+    const visible    = dayNotes.slice(0, 3);
+    const extraCount = dayNotes.length - visible.length;
+
+    const chipsHtml = visible.map(n => {
+        const c = CAT[n.category] || CAT.other;
+        return `<div class="note-chip" data-note-id="${esc(n.id)}" style="background:${c.bg};color:${c.fg}">${esc(n.title)}</div>`;
+    }).join('');
+
+    const extraHtml = extraCount > 0
+        ? `<div class="note-chip extra-chip">+${extraCount} more</div>` : '';
+
+    cell.innerHTML = `
+        <div class="date-num${isT ? '' : ''}">
+            ${isT ? `<span class="today-circle">${d.getDate()}</span>` : d.getDate()}
+        </div>
+        <div class="day-notes">${chipsHtml}${extraHtml}</div>`;
+    cell.dataset.count = dayNotes.length || '';
+    return cell;
+}
+
+// ================================================================
+// RENDER — WEEK
+// ================================================================
+function renderWeek(hdr, grid) {
+    const start = new Date(viewDate);
+    start.setDate(start.getDate() - start.getDay()); // go to Sunday
+
+    const end = new Date(start); end.setDate(end.getDate() + 6);
+    const sLabel = `${MONTHS[start.getMonth()].slice(0,3)} ${start.getDate()}`;
+    const eLabel = `${start.getMonth() !== end.getMonth() ? MONTHS[end.getMonth()].slice(0,3)+' ' : ''}${end.getDate()}, ${end.getFullYear()}`;
+    document.getElementById('monthYear').textContent = `${sLabel} – ${eLabel}`;
+
+    hdr.innerHTML = '';
+    grid.className = 'week-view';
+    grid.innerHTML = '';
+
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(start); d.setDate(d.getDate() + i);
+        const ds = fmt(d), isT = ds === fmt(now);
+        hdr.innerHTML += `<div class="weekday-cell${isT?' is-today-col':''}">${DAYS[i].slice(0,3)}<br><span class="${isT?'today-circle':''}" style="${isT?'display:inline-flex;width:22px;height:22px;border-radius:50%;background:#1a73e8;color:#fff;align-items:center;justify-content:center;font-size:11px':''}">${d.getDate()}</span></div>`;
+
+        const col = document.createElement('div');
+        col.className = 'week-col' + (isT ? ' is-today' : '');
+        col.dataset.date = ds;
+        const dayNotes = notes[ds] || [];
+        col.innerHTML = dayNotes.map(n => {
+            const c = CAT[n.category] || CAT.other;
+            return `<div class="note-chip mb-1" data-note-id="${esc(n.id)}" style="background:${c.bg};color:${c.fg}">${esc(n.title)}<br><small style="opacity:.8">${formatTime(n.note_time)}</small></div>`;
+        }).join('');
+        grid.appendChild(col);
+    }
+}
+
+// ================================================================
+// RENDER — DAY
+// ================================================================
+function renderDay(hdr, grid) {
+    const ds = fmt(viewDate);
+    document.getElementById('monthYear').textContent =
+        `${DAYS[viewDate.getDay()]}, ${MONTHS[viewDate.getMonth()]} ${viewDate.getDate()}, ${viewDate.getFullYear()}`;
+
+    hdr.innerHTML = `<div class="weekday-cell" style="grid-column:1/-1">All Day</div>`;
+    grid.className = 'day-view';
+    grid.innerHTML = '';
+
+    const dayNotes = notes[ds] || [];
+
+    for (let h = 0; h < 24; h++) {
+        const label = h === 0 ? '12 AM' : h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h-12} PM`;
+        const slotNotes = dayNotes.filter(n => {
+            const nh = parseInt((n.note_time || '09:00').split(':')[0]);
+            return nh === h;
+        });
+        const row = document.createElement('div');
+        row.className = 'hour-row';
+        row.innerHTML = `
+          <div class="hour-label">${label}</div>
+          <div class="hour-events" data-date="${ds}" data-hour="${h}">
+            ${slotNotes.map(n => {
+                const c = CAT[n.category] || CAT.other;
+                return `<div class="note-chip mb-1" data-note-id="${esc(n.id)}" style="background:${c.bg};color:${c.fg}">${esc(n.title)}</div>`;
+            }).join('')}
+          </div>`;
+        row.querySelector('.hour-events').addEventListener('click', e => {
+            if (e.target.classList.contains('hour-events')) {
+                e.stopPropagation(); // prevent grid delegation from also triggering openAdd
+                openAdd(ds);
+                setTimeout(() => {
+                    document.getElementById('noteTime').value = String(h).padStart(2,'0') + ':00';
+                }, 80);
+            }
+        });
+        grid.appendChild(row);
+    }
+}
+
+// ================================================================
+// SIDEBAR
+// ================================================================
+function renderSidebar() {
+    const list    = document.getElementById('upcoming-list');
+    const counter = document.getElementById('upcoming-count');
+
+    const todayStr = fmt(now);
+    const limitStr = fmt(new Date(now.getTime() + 7 * 86400000));
+
+    const upcoming = Object.keys(notes).sort()
+        .filter(d => d >= todayStr && d <= limitStr)
+        .flatMap(d => notes[d].map(n => ({...n})));
+
+    counter.textContent = upcoming.length;
+
+    if (!upcoming.length) {
+        list.innerHTML = '<p class="text-muted text-center small mt-4">No upcoming notes.<br>Click any day to add one.</p>';
+        return;
+    }
+
+    list.innerHTML = upcoming.map(n => {
+        const c = CAT[n.category] || CAT.other;
+        const dLabel = friendlyDate(n.note_date);
+        const tLabel = formatTime(n.note_time);
+        return `
+          <div class="upcoming-item" data-note-id="${esc(n.id)}">
+            <div class="d-flex align-items-center gap-2">
+              <span class="cat-dot" style="background:${c.bg}"></span>
+              <div class="flex-grow-1" style="min-width:0">
+                <div class="fw-semibold small text-truncate">${esc(n.title)}</div>
+                <div class="text-muted" style="font-size:11px">${dLabel} ${tLabel ? '· '+tLabel : ''}</div>
+              </div>
+            </div>
+          </div>`;
+    }).join('');
+}
+
+// ================================================================
+// NAVIGATION
+// ================================================================
+function navPrev() {
+    const d = new Date(viewDate);
+    if (view === 'month')      { d.setMonth(d.getMonth() - 1); d.setDate(1); }
+    else if (view === 'week')  { d.setDate(d.getDate() - 7); }
+    else                       { d.setDate(d.getDate() - 1); }
+    viewDate = d; renderCalendar(); renderSidebar();
+}
+function navNext() {
+    const d = new Date(viewDate);
+    if (view === 'month')      { d.setMonth(d.getMonth() + 1); d.setDate(1); }
+    else if (view === 'week')  { d.setDate(d.getDate() + 7); }
+    else                       { d.setDate(d.getDate() + 1); }
+    viewDate = d; renderCalendar(); renderSidebar();
+}
+function goToday() {
+    viewDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    renderCalendar(); renderSidebar();
+}
+
+// ================================================================
+// NOTIFICATIONS
+// ================================================================
+function registerSW() {
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('../service-worker.js')
+            .catch(() => {});
+    }
+}
+
+function checkNotifBanner() {
+    if (!('Notification' in window)) return;
+    const dismissed = localStorage.getItem('kea_notif_dismissed');
+    const banner = document.getElementById('notif-banner');
+    if (Notification.permission === 'default' && !dismissed) {
+        banner.style.display = 'flex';
+    }
+}
+
+function requestNotifPermission() {
+    if (!('Notification' in window)) { alert('Your browser does not support notifications.'); return; }
+    Notification.requestPermission().then(p => {
+        document.getElementById('notif-banner').style.display = 'none';
+        document.getElementById('notifWarn').style.display = 'none';
+        if (p === 'granted') scheduleAll();
+    });
+}
+
+function dismissNotifBanner() {
+    document.getElementById('notif-banner').style.display = 'none';
+    localStorage.setItem('kea_notif_dismissed', '1');
+}
+
+function scheduleAll() {
+    timers.forEach(clearTimeout);
+    timers = [];
+    Object.values(notes).flat().forEach(scheduleOne);
+}
+
+function scheduleOne(note) {
+    if (!note.reminder_minutes || note.reminder_minutes <= 0) return;
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+    const eventTime = new Date(`${note.note_date}T${note.note_time || '09:00'}`);
+    if (isNaN(eventTime)) return;
+    const fireAt = eventTime.getTime() - note.reminder_minutes * 60000;
+    const delay  = fireAt - Date.now();
+
+    if (delay > 0 && delay < 7 * 86400000) {
+        timers.push(setTimeout(() => fireNotif(note), delay));
+    }
+}
+
+function fireNotif(note) {
+    const c = CAT[note.category] || CAT.other;
+    const title = `Reminder: ${c.label}`;
+    const body  = note.title + (note.description ? '\n' + note.description : '');
+    const icon  = '../assets/images/logo.png';
+    const tag   = 'kea_' + note.id;
+
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'SHOW_NOTIFICATION', title, body, icon, tag });
+    } else {
+        try { new Notification(title, { body, icon, tag }); } catch {}
+    }
+}
+
+// ================================================================
+// HELPERS
+// ================================================================
+function fmt(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function formatTime(t) {
+    if (!t) return '';
+    const [h, m] = t.split(':').map(Number);
+    return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${h < 12 ? 'AM' : 'PM'}`;
+}
+function friendlyDate(ds) {
+    const todayStr = fmt(now);
+    const tomStr   = fmt(new Date(now.getTime() + 86400000));
+    if (ds === todayStr) return 'Today';
+    if (ds === tomStr)   return 'Tomorrow';
+    const d = new Date(ds + 'T00:00:00');
+    return `${MONTHS[d.getMonth()].slice(0,3)} ${d.getDate()}`;
+}
+function esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ================================================================
+// Full-year calendar function
+// ================================================================
+document.addEventListener('DOMContentLoaded', function () {
+  const currentYear = new Date().getFullYear();
+  const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+  const modal = document.getElementById("fullYearModal");
+  const viewBtn = document.getElementById("viewFullYearBtn");
+  const closeBtn = document.getElementById("closeModal");
+  const calendarContainer = document.getElementById("fullYearCalendar");
+  const yearTitle = document.getElementById("yearTitle");
+  const saveBtn = document.getElementById("saveCalendarBtn");
+
+  // Open the pop-up window
+  viewBtn.addEventListener("click", () => {
+    modal.style.display = "block";
+    generateFullYearCalendar(currentYear);
+  });
+
+  // Close the pop-up window
+  closeBtn.addEventListener("click", () => modal.style.display = "none");
+  window.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+  });
+
+  // Generate the annual pop-up window
+  function generateFullYearCalendar(year) {
+    calendarContainer.innerHTML = "";
+    yearTitle.textContent = `${year} Full Year Calendar`;
+
+    for (let m = 0; m < 12; m++) {
+      const firstDay = new Date(year, m, 1).getDay();
+      const daysInMonth = new Date(year, m+1, 0).getDate();
+
+      const monthDiv = document.createElement("div");
+      monthDiv.className = "p-3 border rounded";
+
+      const title = document.createElement("div");
+      title.className = "fw-bold text-primary text-center mb-2";
+      title.textContent = monthNames[m];
+      monthDiv.appendChild(title);
+
+      const grid = document.createElement("div");
+      grid.style.display = "grid";
+      grid.style.gridTemplateColumns = "repeat(7,1fr)";
+      grid.style.gap = "4px";
+      grid.style.fontSize = "12px";
+
+      for(let i=0; i<firstDay; i++){
+        const empty = document.createElement("div");
+        grid.appendChild(empty);
+      }
+
+      for(let d=1; d<=daysInMonth; d++){
+        const day = document.createElement("div");
+        day.textContent = d;
+        day.className = "text-center py-1";
+        grid.appendChild(day);
+      }
+
+      monthDiv.appendChild(grid);
+      calendarContainer.appendChild(monthDiv);
+    }
+  }
+
+  // save the picture
+   saveBtn.addEventListener("click", async () => {
+    try {
+      modal.style.display = "block";
+
+      const canvas = await html2canvas(calendarContainer, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false
+      });
+
+      const a = document.createElement("a");
+      a.download = `${currentYear}.png`;
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+
+      alert("✅ Calender saved successfully");
+    } catch (err) {
+      console.error("Export failed", err);
+      alert("❌ Save failed.Please ensure html2canvas library has been loaded");
+    }
+  });
+});
+</script>
+</body>
+</html>
