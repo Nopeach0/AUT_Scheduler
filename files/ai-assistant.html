@@ -55,6 +55,95 @@
             transition: background .12s;
         }
         .prompt-chip:hover { background: #e8f0fe !important; border-color: var(--primary,#1a73e8) !important; color: var(--primary,#1a73e8) !important; }
+                        /* dark mode */
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        body.dark-mode {
+            background-color: #121212 !important;
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .navbar {
+            background-color: #1e1e1e !important;
+            border-bottom: 1px solid #333;
+        }
+
+        body.dark-mode .card,
+        body.dark-mode .app-card,
+        body.dark-mode .quick-card {
+            background-color: #1e1e1e !important;
+            border-color: #333 !important;
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .card-header,
+        body.dark-mode .card-footer {
+            background-color: #252525 !important;
+            border-color: #333 !important;
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode h5,
+        body.dark-mode h6,
+        body.dark-mode .fw-bold {
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .text-muted {
+            color: #aaa !important;
+        }
+
+        body.dark-mode .btn-outline-primary {
+            color: #64b5f6;
+            border-color: #64b5f6;
+        }
+        body.dark-mode .btn-primary {
+            background-color: #1976d2 !important;
+            border-color: #1976d2 !important;
+        }
+
+        body.dark-mode .site-footer {
+            background-color: #1e1e1e !important;
+            color: #ccc !important;
+        }
+
+        #darkModeBtn {
+            background: transparent;
+            border: 1px solid #ced4da;
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        body.dark-mode #darkModeBtn {
+            border-color: #6c757d;
+        }
+                body.dark-mode .chat-bubble.bot {
+            background: #2d2d2d !important;
+            color: #e0e0e0 !important;
+        }
+        body.dark-mode .chat-input-area {
+            background-color: #1e1e1e !important;
+            border-top-color: #333 !important;
+        }
+        body.dark-mode .chat-input-area .form-control {
+            background-color: #2d2d2d !important;
+            border-color: #333 !important;
+            color: #e0e0e0 !important;
+        }
+        body.dark-mode .prompt-chip {
+            background-color: #2d2d2d !important;
+            border-color: #444 !important;
+            color: #aaa !important;
+        }
+        body.dark-mode .alert-info {
+            background-color: #1a3a4a !important;
+            border-color: #256377 !important;
+            color: #b8e0f0 !important;
+        }
     </style>
 </head>
 <body>
@@ -75,6 +164,7 @@
                 <li class="nav-item"><a class="nav-link" href="profile.html">Profile</a></li>
             </ul>
             <div id="auth-nav"></div>
+            <button id="darkModeBtn" class="ms-3 mt-2 mt-md-0">🌙</button>
         </div>
     </div>
 </nav>
@@ -216,6 +306,20 @@
         }
     } catch { /* server offline */ }
 })();
+// dark mode toggle
+const darkModeBtn = document.getElementById('darkModeBtn');
+const body = document.body;
+function initDarkMode() {
+  const isDark = localStorage.getItem('darkMode') === 'true';
+  if (isDark) { body.classList.add('dark-mode'); darkModeBtn.textContent = '☀️'; }
+}
+darkModeBtn.addEventListener('click', () => {
+  body.classList.toggle('dark-mode');
+  const isDark = body.classList.contains('dark-mode');
+  darkModeBtn.textContent = isDark ? '☀️' : '🌙';
+  localStorage.setItem('darkMode', isDark);
+});
+document.addEventListener('DOMContentLoaded', initDarkMode);
 </script>
 </body>
 </html>
