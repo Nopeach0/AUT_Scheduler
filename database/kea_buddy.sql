@@ -6,6 +6,10 @@ CREATE TABLE IF NOT EXISTS users (
     full_name VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
+    schedule_visibility VARCHAR(10) NOT NULL DEFAULT 'public',
+    display_name VARCHAR(100) NULL DEFAULT NULL,
+    bio VARCHAR(300) NULL DEFAULT NULL,
+    avatar_path VARCHAR(255) NULL DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -22,4 +26,15 @@ CREATE TABLE IF NOT EXISTS calendar_notes (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_user_date (user_id, note_date)
+);
+
+CREATE TABLE IF NOT EXISTS friendships (
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    requester_id INT NOT NULL,
+    addressee_id INT NOT NULL,
+    status       VARCHAR(10) NOT NULL DEFAULT 'pending',
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (requester_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (addressee_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_pair (requester_id, addressee_id)
 );

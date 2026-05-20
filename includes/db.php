@@ -88,3 +88,34 @@ $conn->query("
         INDEX idx_user_date (user_id, note_date)
     )
 ");
+
+// Add schedule_visibility to users if it doesn't exist yet
+$col = $conn->query("SHOW COLUMNS FROM users LIKE 'schedule_visibility'");
+if ($col && $col->num_rows === 0) {
+    $conn->query("ALTER TABLE users ADD COLUMN schedule_visibility VARCHAR(10) NOT NULL DEFAULT 'public'");
+}
+
+// Profile customisation columns
+foreach ([
+    'display_name' => "ALTER TABLE users ADD COLUMN display_name VARCHAR(100)  NULL DEFAULT NULL",
+    'bio'          => "ALTER TABLE users ADD COLUMN bio          VARCHAR(300)  NULL DEFAULT NULL",
+    'avatar_path'  => "ALTER TABLE users ADD COLUMN avatar_path  VARCHAR(255)  NULL DEFAULT NULL",
+] as $colName => $alterSql) {
+    $chk = $conn->query("SHOW COLUMNS FROM users LIKE '$colName'");
+    if ($chk && $chk->num_rows === 0) {
+        $conn->query($alterSql);
+    }
+}
+
+$conn->query("
+    CREATE TABLE IF NOT EXISTS friendships (
+        id           INT AUTO_INCREMENT PRIMARY KEY,
+        requester_id INT NOT NULL,
+        addressee_id INT NOT NULL,
+        status       VARCHAR(10)  NOT NULL DEFAULT 'pending',
+        created_at   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (requester_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (addressee_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_pair (requester_id, addressee_id)
+    )
+");
