@@ -23,6 +23,7 @@ if (session_status() === PHP_SESSION_NONE) {
 header('Content-Type: application/json');
 
 require_once __DIR__ . '/../../includes/db.php';
+require_once __DIR__ . '/../../includes/functions.php';
 
 $viewer_id  = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
 $profile_id = (int)($_GET['id'] ?? 0);
@@ -51,23 +52,24 @@ if (!$user) {
 
 $visibility = $user['schedule_visibility'] ?? 'public';
 
-// Determine if the viewer may see the schedule
-$can_see = false;
-if ($viewer_id === $profile_id) {
-    $can_see = true;
-} elseif ($visibility === 'public') {
-    $can_see = true;
-} elseif ($visibility === 'friends' && $viewer_id) {
-    $f = $conn->prepare(
-        'SELECT id FROM friendships
-         WHERE status = "accepted"
-           AND ((requester_id = ? AND addressee_id = ?) OR (requester_id = ? AND addressee_id = ?))'
-    );
-    $f->bind_param('iiii', $viewer_id, $profile_id, $profile_id, $viewer_id);
-    $f->execute();
-    $can_see = $f->get_result()->num_rows > 0;
-    $f->close();
-}
+// Determine if the viewer may see the schedule (uses canViewSchedule() from functions.php)
+$can_see = canViewSchedule(
+    $visibility,
+    $viewer_id,
+    $profile_id,
+    function (int $viewerId, int $ownerId) use ($conn): bool {
+        $f = $conn->prepare(
+            'SELECT id FROM friendships
+             WHERE status = "accepted"
+               AND ((requester_id = ? AND addressee_id = ?) OR (requester_id = ? AND addressee_id = ?))'
+        );
+        $f->bind_param('iiii', $viewerId, $ownerId, $ownerId, $viewerId);
+        $f->execute();
+        $found = $f->get_result()->num_rows > 0;
+        $f->close();
+        return $found;
+    }
+);
 
 $response = [
     'id'                  => (int)$user['id'],

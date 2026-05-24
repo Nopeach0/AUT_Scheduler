@@ -25,8 +25,9 @@ function cyan(string $s): string  { return "\033[36m{$s}\033[0m"; }
 
 // ── Test suites to run ────────────────────────────────────────────
 $suites = [
-    'AuthTest.php'     => 'Authentication Tests',
-    'CalendarTest.php' => 'Calendar Notes Tests',
+    'AuthTest.php'            => 'Authentication Tests',
+    'CalendarTest.php'        => 'Calendar Notes Tests',
+    'SchedulePrivacyTest.php' => 'Schedule Privacy Tests',
 ];
 
 echo "\n" . bold('═══════════════════════════════════════════') . "\n";
