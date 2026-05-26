@@ -17,7 +17,28 @@
         }
         .hero-card h2 { font-size: 1.6rem; font-weight: 700; }
         .hero-card p  { opacity: .85; margin: 0; }
-                /* dark mode */
+
+        /* Quick cards */
+        .quick-card {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
+            transition: all .2s ease;
+        }
+        .quick-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0,0,0,.08);
+        }
+        .quick-card .icon {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        /* dark mode */
         * {
             transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
         }
@@ -82,6 +103,58 @@
         }
         body.dark-mode #darkModeBtn {
             border-color: #6c757d;
+        }
+
+        /* Todo list styles */
+        .todo-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+            flex-wrap: wrap;
+        }
+        .todo-item:last-child {
+            border-bottom: none;
+        }
+        .todo-item.completed .todo-text {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+        .todo-remove-btn {
+            border: none;
+            background: transparent;
+            color: #dc3545;
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+        }
+        .todo-time-info {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-left: auto;
+        }
+        .todo-item.near-deadline {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+        .todo-item.overdue {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        body.dark-mode .todo-item {
+            border-bottom-color: #333;
+        }
+        body.dark-mode .todo-time-info {
+            color: #aaa;
+        }
+        body.dark-mode .todo-item.near-deadline {
+            background-color: #332b00;
+            border-left-color: #ffc107;
+        }
+        body.dark-mode .todo-item.overdue {
+            background-color: #3b1a1e;
+            border-left-color: #dc3545;
         }
     </style>
 </head>
@@ -157,6 +230,14 @@
                         <small class="text-muted">Settings &amp; stats</small>
                     </a>
                 </div>
+                <!-- ✅ New: Todo List quick card -->
+                <div class="col-6 col-md-3">
+                    <a href="#todoListPanel" class="quick-card card text-center p-3">
+                        <div class="icon">&#128203;</div>
+                        <div class="fw-semibold">To‑do List</div>
+                        <small class="text-muted">Your tasks at a glance</small>
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -218,19 +299,60 @@
                 </div>
             </div>
         </div>
-          <!-- Study Timer -->
-<div class="col-12">
-  <div class="card app-card h-100">
-    <div class="card-header bg-white border-bottom py-2">
-      <h6 class="mb-0 fw-bold">&#9201; Study Timer</h6>
-    </div>
-    <div class="card-body">
-      <p class="text-muted small mb-3">Set a study session with scheduled breaks.</p>
-      <button id="stOpenBtn" class="btn btn-primary">Open Study Timer</button>
-    </div>
-  </div>
-</div>
 
+        <!-- Study Timer -->
+        <div class="col-12">
+            <div class="card app-card h-100">
+                <div class="card-header bg-white border-bottom py-2">
+                    <h6 class="mb-0 fw-bold">&#9201; Study Timer</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">Set a study session with scheduled breaks.</p>
+                    <button id="stOpenBtn" class="btn btn-primary">Open Study Timer</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ✅ New: Todo List Panel -->
+        <div class="col-12" id="todoListPanel">
+            <div class="card app-card h-100">
+                <div class="card-header bg-white border-bottom py-2 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold">&#128203; To-do List</h6>
+                    <div class="d-flex gap-2 align-items-center">
+                        <span class="badge rounded-pill bg-primary" id="todoCount">0 tasks</span>
+                        <button id="clearAllTodosBtn" class="btn btn-sm btn-danger">Clear All</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-5">
+                            <div class="input-group">
+                                <input type="text" id="todoInput" class="form-control" placeholder="Add a new task...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="datetime-local" id="todoStartTime" class="form-control" placeholder="Start time">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="datetime-local" id="todoEndTime" class="form-control" placeholder="End time">
+                        </div>
+                        <div class="col-md-1">
+                            <button id="addTodoBtn" class="btn btn-primary w-100">Add</button>
+                        </div>
+                    </div>
+                    <div id="todoList" class="mb-2">
+                        <!-- Tasks will be rendered here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<footer class="site-footer">&copy; 2026 Kea Buddy &mdash; Auckland University of Technology</footer>
+
+<!-- Study Timer Modal & Styles -->
 <button id="stMiniTimer" class="st-mini-timer" type="button" aria-label="Maximise study timer">
   <span id="stMiniTimerDisplay">60:00</span>
 </button>
@@ -875,12 +997,6 @@
 })();
 </script>
 
-
-    </div>
-</main>
-
-<footer class="site-footer">&copy; 2026 Kea Buddy &mdash; Auckland University of Technology</footer>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 /**
@@ -900,16 +1016,24 @@ const CAT = {
 };
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const LS_KEY  = 'kea_buddy_notes';
+const TODO_LS_KEY = 'kea_buddy_todos';
+const REMINDER_THRESHOLD_MINUTES = 15; 
 
 let isLoggedIn  = false;
 let currentUser = null;
 let notes       = {};
+let todos       = [];
+let reminderChecked = new Set(); 
 
 document.addEventListener('DOMContentLoaded', async () => {
     setGreeting();
     await checkAuth();
     await loadNotes();
+    loadTodos();
     renderPanels();
+    renderTodos();
+    checkTodoReminders(); 
+    setInterval(checkTodoReminders, 60000); 
 });
 
 /** Set greeting based on time of day */
@@ -1036,6 +1160,169 @@ function renderPanels() {
             }).join('');
     }
 }
+
+// ── Todo List Logic ────────────────────────────────────────────
+function loadTodos() {
+    try {
+        todos = JSON.parse(localStorage.getItem(TODO_LS_KEY) || '[]');
+    } catch {
+        todos = [];
+    }
+}
+
+function saveTodos() {
+    localStorage.setItem(TODO_LS_KEY, JSON.stringify(todos));
+}
+
+// 
+function formatTimeNoYear(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '';
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hour = String(d.getHours()).padStart(2, '0');
+    const minute = String(d.getMinutes()).padStart(2, '0');
+    return `${month}-${day} ${hour}:${minute}`;
+}
+
+function getTodoStatus(todo) {
+    if (!todo.endTime || todo.completed) return 'normal';
+    const now = new Date();
+    const end = new Date(todo.endTime);
+    const diffMs = end - now;
+    const diffMinutes = diffMs / 60000;
+
+    if (diffMinutes < 0) return 'overdue'; 
+    if (diffMinutes <= REMINDER_THRESHOLD_MINUTES) return 'near-deadline'; 
+    return 'normal';
+}
+
+function renderTodos() {
+    const todoListEl = document.getElementById('todoList');
+    const todoCountEl = document.getElementById('todoCount');
+    todoListEl.innerHTML = '';
+
+    if (todos.length === 0) {
+        todoListEl.innerHTML = '<p class="text-muted text-center small">No tasks yet. Add one above!</p>';
+        todoCountEl.textContent = '0 tasks';
+        return;
+    }
+
+    todoCountEl.textContent = `${todos.length} task${todos.length !== 1 ? 's' : ''}`;
+
+    todos.forEach((todo, index) => {
+        const status = getTodoStatus(todo);
+        const item = document.createElement('div');
+        item.className = `todo-item ${todo.completed ? 'completed' : ''} ${status}`;
+
+        const startTimeStr = todo.startTime ? formatTimeNoYear(todo.startTime) : '';
+        const endTimeStr = todo.endTime ? formatTimeNoYear(todo.endTime) : '';
+        let timeInfo = '';
+        if (startTimeStr && endTimeStr) {
+            timeInfo = `${startTimeStr} → ${endTimeStr}`;
+        } else if (endTimeStr) {
+            timeInfo = `Due: ${endTimeStr}`;
+        }
+
+        item.innerHTML = `
+            <input type="checkbox" class="todo-checkbox" ${todo.completed ? 'checked' : ''} data-index="${index}">
+            <span class="todo-text flex-grow-1">${esc(todo.text)}</span>
+            ${timeInfo ? `<span class="todo-time-info">${timeInfo}</span>` : ''}
+            <button class="todo-remove-btn" data-index="${index}">&times;</button>
+        `;
+        todoListEl.appendChild(item);
+    });
+}
+
+// checkTodoReminders
+function checkTodoReminders() {
+    const now = new Date();
+    todos.forEach(todo => {
+        if (todo.completed || !todo.endTime) return;
+        const end = new Date(todo.endTime);
+        const diffMs = end - now;
+        const diffMinutes = diffMs / 60000;
+
+        if (diffMinutes > 0 && diffMinutes <= REMINDER_THRESHOLD_MINUTES && !reminderChecked.has(todo.id)) {
+            alert(`⏰ Reminder: Your task "${todo.text}" is due in ${Math.round(diffMinutes)} minutes!`);
+            reminderChecked.add(todo.id);
+        }
+    });
+
+    const incompleteTodos = todos.filter(t => !t.completed);
+    if (incompleteTodos.length > 0 && !sessionStorage.getItem('todoReminderShown')) {
+        const count = incompleteTodos.length;
+        alert(`📋 You have ${count} incomplete task${count > 1 ? 's' : ''} in your To-do List!`);
+        sessionStorage.setItem('todoReminderShown', 'true');
+    }
+}
+
+// Add todo
+document.getElementById('addTodoBtn').addEventListener('click', () => {
+    const input = document.getElementById('todoInput');
+    const startTimeInput = document.getElementById('todoStartTime');
+    const endTimeInput = document.getElementById('todoEndTime');
+
+    const text = input.value.trim();
+    const startTime = startTimeInput.value || null;
+    const endTime = endTimeInput.value || null;
+
+    if (!text) return;
+
+    todos.push({
+        id: Date.now(),
+        text,
+        completed: false,
+        startTime,
+        endTime
+    });
+
+    saveTodos();
+    renderTodos();
+    input.value = '';
+    startTimeInput.value = '';
+    endTimeInput.value = '';
+});
+
+// Also add on Enter key
+document.getElementById('todoInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        document.getElementById('addTodoBtn').click();
+    }
+});
+
+// Toggle/remove todo
+document.getElementById('todoList').addEventListener('click', (e) => {
+    const checkbox = e.target.closest('.todo-checkbox');
+    const removeBtn = e.target.closest('.todo-remove-btn');
+
+    if (checkbox) {
+        const index = parseInt(checkbox.dataset.index, 10);
+        todos[index].completed = checkbox.checked;
+        saveTodos();
+        renderTodos();
+    }
+
+    if (removeBtn) {
+        const index = parseInt(removeBtn.dataset.index, 10);
+        todos.splice(index, 1);
+        saveTodos();
+        renderTodos();
+    }
+});
+
+// Clear all todos with confirmation
+document.getElementById('clearAllTodosBtn').addEventListener('click', () => {
+    if (todos.length === 0) return;
+    const confirmed = confirm('Are you sure you want to delete ALL tasks? This cannot be undone!');
+    if (confirmed) {
+        todos = [];
+        saveTodos();
+        renderTodos();
+    }
+});
+
 // ── dark mode ──────────────────────────────────────────────────────
 const darkModeBtn = document.getElementById('darkModeBtn');
 const body = document.body;
@@ -1054,6 +1341,8 @@ darkModeBtn.addEventListener('click', () => {
     darkModeBtn.textContent = isDark ? '☀️' : '🌙';
     localStorage.setItem('darkMode', isDark);
 });
+initDarkMode();
+
 // ── Helpers ─────────────────────────────────────────────────────
 function fmt(d) {
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
