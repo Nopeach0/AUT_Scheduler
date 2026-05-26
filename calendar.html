@@ -116,6 +116,14 @@
         </div>
     </div>
 </nav>
+<div class="container-fluid mt-3 px-4" style="display: flex; justify-content: flex-end;">
+        <div class="form-check form-switch" style="font-size: 1.1rem;">
+            <input class="form-check-input" type="checkbox" id="reminderToggle" checked style="cursor: pointer;">
+            <label class="form-check-label fw-bold text-muted" for="reminderToggle" style="cursor: pointer;">
+                🔔 Schedule Reminders
+            </label>
+        </div>
+    </div>
 
 <!-- ── Notification permission banner ── -->
 <div id="notif-banner" class="alert alert-info mb-0 px-3 py-2">
@@ -930,6 +938,42 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 });
+</script>
+<script>
+ // Listen for toggle switch changes
+    const reminderToggle = document.getElementById('reminderToggle');
+    
+    if (reminderToggle) {
+        reminderToggle.addEventListener('change', function() {
+            // Status: 1 if checked, 0 if unchecked
+            const isEnabled = this.checked ? 1 : 0; 
+            const targetUserId = 1; // Testing with user 1
+            
+            fetch('http://localhost/test_request.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `user_id=${targetUserId}&is_enabled=${isEnabled}`
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log("Database Update: ", data);
+                // Alert user based on status
+                if (this.checked) {
+                    alert("🔔 Reminders turned ON!\n\n" + data);
+                } else {
+                    alert("🔕 Reminders turned OFF! You won't be disturbed.\n\n" + data);
+                }
+            })
+            .catch(error => {
+                console.error("Error: ", error);
+                // Revert toggle state if request fails
+                this.checked = !this.checked; 
+                alert("Failed to update settings. Please check server.");
+            });
+        });
+    }
 </script>
 </body>
 </html>
