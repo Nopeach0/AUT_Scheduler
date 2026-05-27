@@ -260,7 +260,11 @@
                     </select>
                 </div>
 
-                <div class="mb-3">
+                <div class="mb-3 form-check">
+                    <input class="form-check-input" type="checkbox" id="noteRepeatToggle">
+                    <label class="form-check-label" for="noteRepeatToggle">Repeat this note</label>
+                </div>
+                <div class="mb-3" id="noteRepeatRow" style="display:none">
                     <label class="form-label fw-semibold">Repeat</label>
                     <select class="form-select" id="noteRepeat">
                         <option value="none" selected>No repeat</option>
@@ -342,6 +346,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('saveNoteBtn').addEventListener('click', handleSave);
     document.getElementById('deleteNoteBtn').addEventListener('click', handleDelete);
     document.getElementById('noteReminder').addEventListener('change', refreshNotifWarn);
+    document.getElementById('noteRepeatToggle').addEventListener('change', refreshRepeatOptions);
 
     // Event delegation on grid and sidebar
     document.getElementById('daysGrid').addEventListener('click', onGridClick);
@@ -440,7 +445,7 @@ async function handleSave() {
         note_date:        document.getElementById('noteDate').value,
         note_time:        document.getElementById('noteTime').value || '09:00',
         category:         document.getElementById('noteCat').value,
-        repeat_rule:      document.getElementById('noteRepeat').value || 'none',
+        repeat_rule:      document.getElementById('noteRepeatToggle').checked ? document.getElementById('noteRepeat').value || 'none' : 'none',
         reminder_minutes: parseInt(document.getElementById('noteReminder').value) || 0
     };
 
@@ -518,8 +523,10 @@ function openAdd(ds) {
     document.getElementById('noteDate').value       = ds || fmt(now);
     document.getElementById('noteTime').value       = '09:00';
     document.getElementById('noteCat').value        = 'other';
+    document.getElementById('noteRepeatToggle').checked = false;
     document.getElementById('noteRepeat').value     = 'none';
     document.getElementById('noteReminder').value   = '0';
+    refreshRepeatOptions();
     document.getElementById('deleteNoteBtn').style.display = 'none';
     refreshNotifWarn();
     bsModal.show();
@@ -534,11 +541,24 @@ function openEdit(note) {
     document.getElementById('noteDate').value       = note.note_date;
     document.getElementById('noteTime').value       = note.note_time || '09:00';
     document.getElementById('noteCat').value        = note.category || 'other';
-    document.getElementById('noteRepeat').value     = note.repeat_rule || 'none';
-    document.getElementById('noteReminder').value   = String(note.reminder_minutes || 0);
+    const repeatRule = note.repeat_rule || 'none';
+    document.getElementById('noteRepeatToggle').checked = repeatRule !== 'none';
+    document.getElementById('noteRepeat').value       = repeatRule;
+    document.getElementById('noteReminder').value     = String(note.reminder_minutes || 0);
+    refreshRepeatOptions();
     document.getElementById('deleteNoteBtn').style.display = '';
     refreshNotifWarn();
     bsModal.show();
+}
+
+function refreshRepeatOptions() {
+    const toggle = document.getElementById('noteRepeatToggle');
+    const row = document.getElementById('noteRepeatRow');
+    if (!toggle || !row) return;
+    row.style.display = toggle.checked ? '' : 'none';
+    if (!toggle.checked) {
+        document.getElementById('noteRepeat').value = 'none';
+    }
 }
 
 function refreshNotifWarn() {
