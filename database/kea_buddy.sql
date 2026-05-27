@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS calendar_notes (
     note_date DATE NOT NULL,
     note_time VARCHAR(5) NOT NULL DEFAULT '09:00',
     category ENUM('assignment','meeting','study','other') NOT NULL DEFAULT 'other',
+    repeat_rule ENUM('none','daily','weekly','monthly') NOT NULL DEFAULT 'none',
     reminder_minutes INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

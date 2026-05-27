@@ -25,7 +25,7 @@ switch ($method) {
     case 'GET':
         $stmt = $conn->prepare(
             'SELECT id, user_id, title, description, note_date, note_time,
-                    category, reminder_minutes, created_at
+                    category, repeat_rule, reminder_minutes, created_at
              FROM calendar_notes
              WHERE user_id = ?
              ORDER BY note_date ASC, note_time ASC'
@@ -57,22 +57,27 @@ switch ($method) {
         $note_date        = $data['note_date']         ?? '';
         $note_time        = $data['note_time']         ?? '09:00';
         $category         = $data['category']          ?? 'other';
+        $repeat_rule      = $data['repeat_rule']       ?? 'none';
         $reminder_minutes = (int)($data['reminder_minutes'] ?? 0);
 
         if (!$title || !$note_date) {
             jsonError('Title and date are required', 400);
         }
 
+        if (!in_array($repeat_rule, ['none', 'daily', 'weekly', 'monthly'], true)) {
+            $repeat_rule = 'none';
+        }
+
         $stmt = $conn->prepare(
             'INSERT INTO calendar_notes
-                (user_id, title, description, note_date, note_time, category, reminder_minutes)
-             VALUES (?, ?, ?, ?, ?, ?, ?)'
+                (user_id, title, description, note_date, note_time, category, repeat_rule, reminder_minutes)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
         );
         if (!$stmt) { jsonError('Query preparation failed', 500); }
 
-        $stmt->bind_param('isssssi',
+        $stmt->bind_param('isssssii',
             $current_user_id, $title, $description,
-            $note_date, $note_time, $category, $reminder_minutes
+            $note_date, $note_time, $category, $repeat_rule, $reminder_minutes
         );
 
         if (!$stmt->execute()) {
@@ -90,6 +95,7 @@ switch ($method) {
             'note_date'        => $note_date,
             'note_time'        => $note_time,
             'category'         => $category,
+            'repeat_rule'      => $repeat_rule,
             'reminder_minutes' => $reminder_minutes,
         ]);
         break;
@@ -104,22 +110,27 @@ switch ($method) {
         $note_date        = $data['note_date']               ?? '';
         $note_time        = $data['note_time']               ?? '09:00';
         $category         = $data['category']                ?? 'other';
+        $repeat_rule      = $data['repeat_rule']             ?? 'none';
         $reminder_minutes = (int)($data['reminder_minutes'] ?? 0);
 
         if (!$id || !$title || !$note_date) {
             jsonError('ID, title, and date are required', 400);
         }
 
+        if (!in_array($repeat_rule, ['none', 'daily', 'weekly', 'monthly'], true)) {
+            $repeat_rule = 'none';
+        }
+
         $stmt = $conn->prepare(
             'UPDATE calendar_notes
-             SET title=?, description=?, note_date=?, note_time=?, category=?, reminder_minutes=?
+             SET title=?, description=?, note_date=?, note_time=?, category=?, repeat_rule=?, reminder_minutes=?
              WHERE id=? AND user_id=?'
         );
         if (!$stmt) { jsonError('Query preparation failed', 500); }
 
-        // sssssiii: 5 strings then 3 ints (reminder_minutes, id, user_id)
-        $stmt->bind_param('sssssiii',
-            $title, $description, $note_date, $note_time, $category,
+        // ssssssiiii: 6 strings then 3 ints (repeat_rule, reminder_minutes, id, user_id)
+        $stmt->bind_param('ssssssiii',
+            $title, $description, $note_date, $note_time, $category, $repeat_rule,
             $reminder_minutes, $id, $current_user_id
         );
 
@@ -137,6 +148,7 @@ switch ($method) {
             'note_date'        => $note_date,
             'note_time'        => $note_time,
             'category'         => $category,
+            'repeat_rule'      => $repeat_rule,
             'reminder_minutes' => $reminder_minutes,
         ]);
         break;

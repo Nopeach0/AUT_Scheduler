@@ -260,6 +260,16 @@
                     </select>
                 </div>
 
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Repeat</label>
+                    <select class="form-select" id="noteRepeat">
+                        <option value="none" selected>No repeat</option>
+                        <option value="daily">Every day</option>
+                        <option value="weekly">Every week</option>
+                        <option value="monthly">Every month</option>
+                    </select>
+                </div>
+
                 <div class="mb-2">
                     <label class="form-label fw-semibold">&#128276; Reminder</label>
                     <select class="form-select" id="noteReminder">
@@ -430,6 +440,7 @@ async function handleSave() {
         note_date:        document.getElementById('noteDate').value,
         note_time:        document.getElementById('noteTime').value || '09:00',
         category:         document.getElementById('noteCat').value,
+        repeat_rule:      document.getElementById('noteRepeat').value || 'none',
         reminder_minutes: parseInt(document.getElementById('noteReminder').value) || 0
     };
 
@@ -464,12 +475,12 @@ async function persistNote(nd) {
         if (nd.id) removeFromLocal(nd.id);
         (notes[saved.note_date] = notes[saved.note_date] || []).push(saved);
         buildRegistry();
-        scheduleOne(saved);
+        scheduleNoteTimers(saved);
     } else {
         if (nd.id) removeFromLocal(nd.id);
         else nd.id = 'ls_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
         (notes[nd.note_date] = notes[nd.note_date] || []).push({...nd});
-        writeLS(); buildRegistry(); scheduleOne(nd);
+        writeLS(); buildRegistry(); scheduleNoteTimers(nd);
     }
 }
 
@@ -507,6 +518,7 @@ function openAdd(ds) {
     document.getElementById('noteDate').value       = ds || fmt(now);
     document.getElementById('noteTime').value       = '09:00';
     document.getElementById('noteCat').value        = 'other';
+    document.getElementById('noteRepeat').value     = 'none';
     document.getElementById('noteReminder').value   = '0';
     document.getElementById('deleteNoteBtn').style.display = 'none';
     refreshNotifWarn();
@@ -522,6 +534,7 @@ function openEdit(note) {
     document.getElementById('noteDate').value       = note.note_date;
     document.getElementById('noteTime').value       = note.note_time || '09:00';
     document.getElementById('noteCat').value        = note.category || 'other';
+    document.getElementById('noteRepeat').value     = note.repeat_rule || 'none';
     document.getElementById('noteReminder').value   = String(note.reminder_minutes || 0);
     document.getElementById('deleteNoteBtn').style.display = '';
     refreshNotifWarn();
@@ -601,7 +614,7 @@ function buildMonthCell(d, other) {
     cell.className = 'day-cell' + (other ? ' other-month' : '') + (isT ? ' is-today' : '');
     cell.dataset.date = ds;
 
-    const dayNotes   = notes[ds] || [];
+    const dayNotes   = getNotesForDate(ds);
     const visible    = dayNotes.slice(0, 3);
     const extraCount = dayNotes.length - visible.length;
 
@@ -646,7 +659,7 @@ function renderWeek(hdr, grid) {
         const col = document.createElement('div');
         col.className = 'week-col' + (isT ? ' is-today' : '');
         col.dataset.date = ds;
-        const dayNotes = notes[ds] || [];
+        const dayNotes = getNotesForDate(ds);
         col.innerHTML = dayNotes.map(n => {
             const c = CAT[n.category] || CAT.other;
             return `<div class="note-chip mb-1" data-note-id="${esc(n.id)}" style="background:${c.bg};color:${c.fg}">${esc(n.title)}<br><small style="opacity:.8">${formatTime(n.note_time)}</small></div>`;
@@ -667,7 +680,7 @@ function renderDay(hdr, grid) {
     grid.className = 'day-view';
     grid.innerHTML = '';
 
-    const dayNotes = notes[ds] || [];
+    const dayNotes = getNotesForDate(ds);
 
     for (let h = 0; h < 24; h++) {
         const label = h === 0 ? '12 AM' : h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h-12} PM`;
@@ -705,13 +718,7 @@ function renderSidebar() {
     const list    = document.getElementById('upcoming-list');
     const counter = document.getElementById('upcoming-count');
 
-    const todayStr = fmt(now);
-    const limitStr = fmt(new Date(now.getTime() + 7 * 86400000));
-
-    const upcoming = Object.keys(notes).sort()
-        .filter(d => d >= todayStr && d <= limitStr)
-        .flatMap(d => notes[d].map(n => ({...n})));
-
+    const upcoming = getUpcomingNotes(7);
     counter.textContent = upcoming.length;
 
     if (!upcoming.length) {
@@ -794,29 +801,40 @@ function dismissNotifBanner() {
 function scheduleAll() {
     timers.forEach(clearTimeout);
     timers = [];
-    Object.values(notes).flat().forEach(scheduleOne);
+    Object.values(notes).flat().forEach(scheduleNoteTimers);
 }
 
-function scheduleOne(note) {
+function scheduleNoteTimers(note) {
     if (!note.reminder_minutes || note.reminder_minutes <= 0) return;
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
-    const eventTime = new Date(`${note.note_date}T${note.note_time || '09:00'}`);
-    if (isNaN(eventTime)) return;
-    const fireAt = eventTime.getTime() - note.reminder_minutes * 60000;
-    const delay  = fireAt - Date.now();
+    const today = new Date();
+    today.setHours(0,0,0,0);
 
-    if (delay > 0 && delay < 7 * 86400000) {
-        timers.push(setTimeout(() => fireNotif(note), delay));
+    for (let i = 0; i < 8; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() + i);
+        const ds = fmt(d);
+        if (!occursOn(note, ds)) continue;
+
+        const eventTime = new Date(`${ds}T${note.note_time || '09:00'}`);
+        if (isNaN(eventTime)) continue;
+
+        const fireAt = eventTime.getTime() - note.reminder_minutes * 60000;
+        const delay  = fireAt - Date.now();
+
+        if (delay > 0 && delay < 7 * 86400000) {
+            timers.push(setTimeout(() => fireNotif(note, ds), delay));
+        }
     }
 }
 
-function fireNotif(note) {
+function fireNotif(note, occurrenceDate) {
     const c = CAT[note.category] || CAT.other;
     const title = `Reminder: ${c.label}`;
     const body  = note.title + (note.description ? '\n' + note.description : '');
     const icon  = '../assets/images/logo.png';
-    const tag   = 'kea_' + note.id;
+    const tag   = 'kea_' + note.id + (occurrenceDate ? '_' + occurrenceDate : '');
 
     if (navigator.serviceWorker && navigator.serviceWorker.controller) {
         navigator.serviceWorker.controller.postMessage({ type: 'SHOW_NOTIFICATION', title, body, icon, tag });
@@ -828,6 +846,56 @@ function fireNotif(note) {
 // ================================================================
 // HELPERS
 // ================================================================
+function occursOn(note, dateStr) {
+    const rule = note.repeat_rule || 'none';
+    if (rule === 'none') return note.note_date === dateStr;
+    if (dateStr < note.note_date) return false;
+
+    if (rule === 'daily') {
+        return true;
+    }
+
+    const start = new Date(`${note.note_date}T00:00:00`);
+    const target = new Date(`${dateStr}T00:00:00`);
+    if (isNaN(start) || isNaN(target)) return false;
+
+    if (rule === 'weekly') {
+        const dayDiff = Math.round((target - start) / 86400000);
+        return dayDiff >= 0 && dayDiff % 7 === 0;
+    }
+
+    if (rule === 'monthly') {
+        const [sy, sm, sd] = note.note_date.split('-').map(Number);
+        const [ty, tm, td] = dateStr.split('-').map(Number);
+        return td === sd && (ty > sy || (ty === sy && tm >= sm));
+    }
+
+    return note.note_date === dateStr;
+}
+
+function getNotesForDate(dateStr) {
+    return Object.values(notes).flat().filter(n => occursOn(n, dateStr));
+}
+
+function getUpcomingNotes(days = 7) {
+    const output = [];
+    const start = new Date();
+    start.setHours(0,0,0,0);
+
+    for (let i = 0; i < days; i++) {
+        const d = new Date(start);
+        d.setDate(d.getDate() + i);
+        const ds = fmt(d);
+        getNotesForDate(ds).forEach(n => output.push({ ...n, note_date: ds }));
+    }
+
+    return output.sort((a, b) => {
+        const dateOrder = a.note_date.localeCompare(b.note_date);
+        if (dateOrder !== 0) return dateOrder;
+        return (a.note_time || '').localeCompare(b.note_time || '');
+    });
+}
+
 function fmt(d) {
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }

@@ -81,6 +81,7 @@ $conn->query("
         note_date        DATE         NOT NULL,
         note_time        VARCHAR(5)   NOT NULL DEFAULT '09:00',
         category         VARCHAR(20)  NOT NULL DEFAULT 'other',
+        repeat_rule      ENUM('none','daily','weekly','monthly') NOT NULL DEFAULT 'none',
         reminder_minutes INT          NOT NULL DEFAULT 0,
         created_at       TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
         updated_at       TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -93,6 +94,11 @@ $conn->query("
 $col = $conn->query("SHOW COLUMNS FROM users LIKE 'schedule_visibility'");
 if ($col && $col->num_rows === 0) {
     $conn->query("ALTER TABLE users ADD COLUMN schedule_visibility VARCHAR(10) NOT NULL DEFAULT 'public'");
+}
+
+$col = $conn->query("SHOW COLUMNS FROM calendar_notes LIKE 'repeat_rule'");
+if ($col && $col->num_rows === 0) {
+    $conn->query("ALTER TABLE calendar_notes ADD COLUMN repeat_rule ENUM('none','daily','weekly','monthly') NOT NULL DEFAULT 'none'");
 }
 
 // Profile customisation columns
