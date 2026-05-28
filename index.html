@@ -273,11 +273,15 @@
                             </div>
                         </div>
                     </div>
-                    <div id="upcomingContent" style="display:none"></div>
+<div id="upcomingContent" class="overflow-auto pe-1" style="display:none; max-height: 220px;"></div>
                 </div>
-                <div class="card-footer bg-white text-end py-2">
-                    <a href="files/calendar.html" class="btn btn-sm btn-outline-primary">View full calendar</a>
-                </div>
+     <div class="card-footer bg-white py-2 d-flex align-items-center gap-3">
+    <div class="progress flex-grow-1" style="height: 10px; border-radius: 5px;">
+        <div id="upcomingProgressBar" class="progress-bar bg-success progress-bar-striped progress-bar-animated" style="width: 0%;"></div>
+    </div>
+    <span id="progressText" class="small fw-bold text-success" style="min-width: 35px;">0%</span>
+    <a href="files/calendar.html" class="btn btn-sm btn-outline-primary text-nowrap">View Full Calendar</a>
+</div>
             </div>
         </div>
 
@@ -1119,8 +1123,8 @@ function renderPanels() {
     const upContent = document.getElementById('upcomingContent');
     upContent.style.display = '';
 
-    if (!upcoming.length) {
-        upContent.innerHTML =
+if (!upcoming.length) {
+        upContent.innerHTML = 
             '<p class="text-muted text-center small py-4">No upcoming notes.<br>' +
             '<a href="files/calendar.html">Open the calendar</a> to add one.</p>';
     } else {
@@ -1128,15 +1132,43 @@ function renderPanels() {
             const c = CAT[n.category] || CAT.other;
             const dLabel = friendlyDate(n.note_date);
             return `
-              <div class="upcoming-item d-flex align-items-center gap-2">
+            <div class="upcoming-item d-flex align-items-center gap-2 py-1">
+                <input class="form-check-input task-checkbox mt-0" type="checkbox" style="width: 18px; height: 18px; cursor: pointer; flex-shrink: 0;">
                 <span class="cat-dot" style="background:${c.bg}"></span>
                 <div class="flex-grow-1" style="min-width:0">
-                  <div class="fw-semibold small text-truncate">${esc(n.title)}</div>
-                  <div class="text-muted" style="font-size:11px">${dLabel}</div>
+                    <div class="fw-semibold small text-truncate">${esc(n.title)}</div>
+                    <div class="text-muted" style="font-size:11px">${dLabel}</div>
                 </div>
                 <span class="cat-badge cat-${esc(n.category)}">${c.label}</span>
-              </div>`;
+            </div>`;
         }).join('');
+
+        const checkboxes = upContent.querySelectorAll('.task-checkbox');
+        const progressBar = document.getElementById('upcomingProgressBar');
+        const progressText = document.getElementById('progressText');
+
+        if (progressBar && progressText) {
+            function updateProgress() {
+                const total = checkboxes.length;
+                if (total === 0) return;
+                const completed = upContent.querySelectorAll('.task-checkbox:checked').length;
+                const pct = Math.round((completed / total) * 100);
+                
+                progressBar.style.width = pct + '%';
+                progressText.innerText = pct + '%';
+                
+                if (pct === 100) {
+                    progressBar.className = 'progress-bar bg-warning progress-bar-striped progress-bar-animated';
+                    progressText.className = 'small fw-bold text-warning';
+                } else {
+                    progressBar.className = 'progress-bar bg-success progress-bar-striped progress-bar-animated';
+                    progressText.className = 'small fw-bold text-success';
+                }
+            }
+            
+            checkboxes.forEach(box => box.addEventListener('change', updateProgress));
+            updateProgress(); 
+        }
     }
 
     // ── Today panel ──────────────────────────────────────────────
