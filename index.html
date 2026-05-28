@@ -275,9 +275,18 @@
                     </div>
                     <div id="upcomingContent" style="display:none"></div>
                 </div>
-                <div class="card-footer bg-white text-end py-2">
-                    <a href="files/calendar.html" class="btn btn-sm btn-outline-primary">View full calendar</a>
-                </div>
+                <div class="card-footer bg-white d-flex justify-content-end gap-2 py-2">
+    <button id="helpMeStartBtn"
+        class="btn btn-sm btn-success"
+        style="display:none"
+        onclick="openAssignmentPlanner()">
+        Help Me Start
+    </button>
+
+    <a href="files/calendar.html" class="btn btn-sm btn-outline-primary">
+        View full calendar
+    </a>
+</div>
             </div>
         </div>
 
@@ -299,6 +308,49 @@
                 </div>
             </div>
         </div>
+         <div class="modal fade" id="assignmentPlannerModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Assignment Auto-Planner</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <form onsubmit="createAssignmentPlan(event)">
+          <div class="mb-3">
+            <label class="form-label">Assignment Name</label>
+            <input type="text" id="assignmentName" class="form-control" readonly>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">How many parts?</label>
+            <input type="number" id="assignmentParts" class="form-control" value="3" min="1" max="10">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Hours per part</label>
+            <input type="number" id="hoursPerPart" class="form-control" value="3" min="1" max="8">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Start Date</label>
+            <input type="date" id="startDate" class="form-control" required>
+          </div>
+
+          <button type="submit" class="btn btn-success">Create Plan</button>
+        </form>
+
+        <hr>
+
+        <h6 class="fw-bold">Generated Plan</h6>
+        <div id="assignmentPlanList"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
 
         <!-- Study Timer -->
         <div class="col-12">
@@ -599,6 +651,33 @@
       width: 100%;
     }
   }
+
+
+
+  .assignment-task {
+  padding: 12px;
+  border: 1px solid #d8dee9;
+  border-radius: 8px;
+  background: #fff;
+  margin-bottom: 10px;
+}
+
+.assignment-task.completed {
+  background: #eaf7ef;
+}
+
+.assignment-task.unfinished {
+  background: #fff3cd;
+}
+
+.assignment-task-title {
+  font-weight: bold;
+}
+
+.assignment-task-meta {
+  font-size: 13px;
+  color: #64748b;
+}
 </style>
 
 <script>
@@ -1128,7 +1207,8 @@ function renderPanels() {
             const c = CAT[n.category] || CAT.other;
             const dLabel = friendlyDate(n.note_date);
             return `
-              <div class="upcoming-item d-flex align-items-center gap-2">
+              <div class="upcoming-item d-flex align-items-center gap-2"
+     onclick='selectAssignment(${JSON.stringify(n).replace(/'/g, "&apos;")})'>
                 <span class="cat-dot" style="background:${c.bg}"></span>
                 <div class="flex-grow-1" style="min-width:0">
                   <div class="fw-semibold small text-truncate">${esc(n.title)}</div>
@@ -1362,6 +1442,220 @@ function getTimeOfDay() {
 function esc(s) {
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+let selectedAssignment = null;
+let assignmentPlan = [];
+
+function selectAssignment(note) {
+    selectedAssignment = note;
+
+    const helpBtn = document.getElementById("helpMeStartBtn");
+
+    if (note.category === "assignment") {
+        helpBtn.style.display = "inline-block";
+    } else {
+        helpBtn.style.display = "none";
+    }
+}
+
+function openAssignmentPlanner() {
+    if (!selectedAssignment) {
+        alert("Please select an assignment from Upcoming first.");
+        return;
+    }
+
+    document.getElementById("assignmentName").value = selectedAssignment.title;
+    document.getElementById("startDate").value = formatDate(new Date());
+
+    const modal = new bootstrap.Modal(
+        document.getElementById("assignmentPlannerModal")
+    );
+
+    modal.show();
+}
+
+function createAssignmentPlan(event) {
+    event.preventDefault();
+
+    const name = document.getElementById("assignmentName").value;
+    const parts = parseInt(document.getElementById("assignmentParts").value);
+    const hours = parseInt(document.getElementById("hoursPerPart").value);
+
+    assignmentPlan = [];
+
+    const slots = findAvailableSlotsBeforeDueDate(selectedAssignment.note_date, parts, hours);
+
+    for (let i = 0; i < slots.length; i++) {
+        const slot = slots[i];
+
+        const task = {
+            id: Date.now() + i,
+            title: `${name} - Part ${i + 1}`,
+            date: slot.date,
+            time: slot.time,
+            hours: slot.hours,
+            completed: false
+        };
+
+        assignmentPlan.push(task);
+
+        if (!notes[slot.date]) {
+            notes[slot.date] = [];
+        }
+
+        notes[slot.date].push({
+            id: task.id,
+            title: task.title,
+            note_date: slot.date,
+            category: "study",
+            start_time: slot.time,
+            description: `Auto-planned assignment part for ${name} (${slot.hours} hour/s)`
+        });
+    }
+
+    localStorage.setItem(LS_KEY, JSON.stringify(notes));
+    renderPanels();
+    renderAssignmentPlan();
+}
+
+function renderAssignmentPlan() {
+    const list = document.getElementById("assignmentPlanList");
+    list.innerHTML = "";
+
+    assignmentPlan.forEach(task => {
+        const div = document.createElement("div");
+        div.className = `assignment-task ${task.completed ? "completed" : ""}`;
+
+        div.innerHTML = `
+            <div class="assignment-task-title">${esc(task.title)}</div>
+            <div class="assignment-task-meta">
+                ${task.date} at ${task.time} | ${task.hours} hours
+            </div>
+
+            <button class="btn btn-sm btn-outline-success mt-2"
+                onclick="markComplete(${task.id})">
+                Mark Complete
+            </button>
+        `;
+
+        list.appendChild(div);
+    });
+}
+
+function markComplete(id) {
+    const task = assignmentPlan.find(t => t.id === id);
+
+    if (task) {
+        task.completed = true;
+    }
+
+    renderAssignmentPlan();
+}
+
+function findAvailableSlotsBeforeDueDate(dueDate, totalParts, hoursPerPart) {
+    const slots = [];
+
+    const today = new Date();
+    const due = new Date(dueDate + "T00:00:00");
+
+    const availableDays = [];
+
+    for (let d = new Date(today); d <= due; d.setDate(d.getDate() + 1)) {
+        const dateString = formatDate(new Date(d));
+        const freeHours = getFreeHoursForDate(dateString);
+
+        if (freeHours.length > 0) {
+            availableDays.push({
+                date: dateString,
+                freeHours: freeHours
+            });
+        }
+    }
+
+    if (availableDays.length === 0) {
+        alert("No free slots available before the due date.");
+        return [];
+    }
+
+    let maxPartsPerDay = 2;
+
+    if (totalParts > availableDays.length * maxPartsPerDay) {
+        maxPartsPerDay = Math.ceil(totalParts / availableDays.length);
+    }
+
+    let partIndex = 0;
+
+    for (let day of availableDays) {
+        let partsAddedToday = countAssignmentPartsOnDate(day.date);
+
+        while (
+            partIndex < totalParts &&
+            partsAddedToday < maxPartsPerDay &&
+            day.freeHours.length > 0
+        ) {
+            const hour = day.freeHours.shift();
+
+            slots.push({
+                date: day.date,
+                time: `${String(hour).padStart(2, "0")}:00`,
+                hours: hoursPerPart
+            });
+
+            partIndex++;
+            partsAddedToday++;
+        }
+
+        if (partIndex >= totalParts) break;
+    }
+
+    if (partIndex < totalParts) {
+        alert("Not enough free slots found before the due date. Some parts could not be scheduled.");
+    }
+
+    return slots;
+}
+
+function countAssignmentPartsOnDate(dateString) {
+    const dayNotes = notes[dateString] || [];
+
+    return dayNotes.filter(note =>
+        note.category === "study" &&
+        note.title &&
+        note.title.includes("Part")
+    ).length;
+}
+
+function getFreeHoursForDate(dateString) {
+    const dayNotes = notes[dateString] || [];
+
+    const studyStartHour = 9;
+    const studyEndHour = 20;
+
+    const occupiedHours = [];
+
+    dayNotes.forEach(note => {
+        if (note.start_time) {
+            const hour = parseInt(note.start_time.split(":")[0]);
+            occupiedHours.push(hour);
+        }
+    });
+
+    const freeHours = [];
+
+    for (let hour = studyStartHour; hour < studyEndHour; hour++) {
+        if (!occupiedHours.includes(hour)) {
+            freeHours.push(hour);
+        }
+    }
+
+    return freeHours;
+}
+
+function formatDate(date) {
+    return date.toISOString().split("T")[0];
+}
+
+
 </script>
 </body>
 </html>
