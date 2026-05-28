@@ -116,14 +116,6 @@
         </div>
     </div>
 </nav>
-<div class="container-fluid mt-3 px-4" style="display: flex; justify-content: flex-end;">
-        <div class="form-check form-switch" style="font-size: 1.1rem;">
-            <input class="form-check-input" type="checkbox" id="reminderToggle" checked style="cursor: pointer;">
-            <label class="form-check-label fw-bold text-muted" for="reminderToggle" style="cursor: pointer;">
-                🔔 Schedule Reminders
-            </label>
-        </div>
-    </div>
 
 <!-- ── Notification permission banner ── -->
 <div id="notif-banner" class="alert alert-info mb-0 px-3 py-2">
@@ -152,6 +144,12 @@
                     <span class="badge rounded-pill bg-primary" id="upcoming-count">0</span>
                 </div>
                 <div class="card-body p-2 overflow-auto" style="max-height:70vh">
+                    <div style="margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+    <span style="color: #495057; font-weight: bold;">
+        <i class="fas fa-bell" style="color: #ffc107; margin-right: 5px;"></i> Reminders
+    </span>
+    <input type="checkbox" id="reminderToggle" style="width: 16px; height: 16px; cursor: pointer; margin: 0;">
+</div>
                     <div id="upcoming-list">
                         <p class="text-muted text-center small mt-4">No upcoming notes.<br>Click any day to add one.</p>
                     </div>
@@ -1059,6 +1057,33 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Revert toggle state if request fails
                 this.checked = !this.checked; 
                 alert("Failed to update settings. Please check server.");
+            });
+        });
+    }
+</script>
+<script>
+    const reminderToggle = document.getElementById('reminderToggle');
+    if (reminderToggle) {
+        reminderToggle.addEventListener('change', function() {
+            const isEnabled = this.checked ? 1 : 0; 
+            const targetUserId = 1; 
+            
+            fetch('http://localhost/test_request.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `user_id=${targetUserId}&is_enabled=${isEnabled}`
+            })
+            .then(response => response.text())
+            .then(data => {
+                if (this.checked) {
+                    alert("🔔 Reminders turned ON!\n\n" + data);
+                } else {
+                    alert("🔕 Reminders turned OFF!\n\n" + data);
+                }
+            })
+            .catch(error => {
+                this.checked = !this.checked; 
+                alert("Failed to update. Check XAMPP server.");
             });
         });
     }
