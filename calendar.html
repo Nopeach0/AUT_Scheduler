@@ -93,6 +93,117 @@
             .note-chip { display: none; }
             .day-cell::after { content: attr(data-count); font-size: 10px; color: var(--primary); }
         }
+        /* ── Dark mode overrides ── */
+                body.dark-mode .weekday-row {
+            background-color: #1e1e1e !important;
+            border-bottom-color: #333 !important;
+        }
+        body.dark-mode .weekday-cell {
+            color: #aaa !important;
+        }
+        body.dark-mode .day-cell,
+        body.dark-mode .week-col {
+            background-color: #252525 !important;
+            border-color: #333 !important;
+        }
+        body.dark-mode .day-cell:hover,
+        body.dark-mode .week-col:hover,
+        body.dark-mode .hour-events:hover,
+        body.dark-mode .upcoming-item:hover {
+            background-color: #2d2d2d !important;
+        }
+        body.dark-mode .day-cell.other-month {
+            background-color: #202020 !important;
+            color: #666 !important;
+        }
+        body.dark-mode .day-cell.is-today {
+            background: linear-gradient(170deg, #19376d, #0d47a1) !important;
+            border-left-color: var(--primary) !important;
+        }
+        body.dark-mode .date-num {
+            color: #ccc !important;
+        }
+        body.dark-mode .hour-row {
+            border-bottom-color: #333 !important;
+        }
+        body.dark-mode .hour-label {
+            color: #777 !important;
+        }
+        body.dark-mode .note-chip.extra-chip {
+            background: #333 !important;
+            color: #ccc !important;
+        }
+        body.dark-mode #notif-banner,
+        body.dark-mode #local-banner {
+            background-color: #252525 !important;
+            border-color: #333 !important;
+            color: #e0e0e0 !important;
+        }
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        body.dark-mode {
+            background-color: #121212 !important;
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .navbar {
+            background-color: #1e1e1e !important;
+            border-bottom: 1px solid #333;
+        }
+
+        body.dark-mode .card,
+        body.dark-mode .app-card,
+        body.dark-mode .quick-card {
+            background-color: #1e1e1e !important;
+            border-color: #333 !important;
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .card-header,
+        body.dark-mode .card-footer {
+            background-color: #252525 !important;
+            border-color: #333 !important;
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode h5,
+        body.dark-mode h6,
+        body.dark-mode .fw-bold {
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .text-muted {
+            color: #aaa !important;
+        }
+
+        body.dark-mode .btn-outline-primary {
+            color: #64b5f6;
+            border-color: #64b5f6;
+        }
+        body.dark-mode .btn-primary {
+            background-color: #1976d2 !important;
+            border-color: #1976d2 !important;
+        }
+
+        body.dark-mode .site-footer {
+            background-color: #1e1e1e !important;
+            color: #ccc !important;
+        }
+
+        #darkModeBtn {
+            background: transparent;
+            border: 1px solid #ced4da;
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        body.dark-mode #darkModeBtn {
+            border-color: #6c757d;
+        }
     </style>
 </head>
 <body>
@@ -113,17 +224,10 @@
                 <li class="nav-item"><a class="nav-link" href="profile.html">Profile</a></li>
             </ul>
             <div id="auth-nav"></div>
+             <button id="darkModeBtn" class="ms-3 mt-2 mt-md-0">🌙</button>
         </div>
     </div>
 </nav>
-<div class="container-fluid mt-3 px-4" style="display: flex; justify-content: flex-end;">
-        <div class="form-check form-switch" style="font-size: 1.1rem;">
-            <input class="form-check-input" type="checkbox" id="reminderToggle" checked style="cursor: pointer;">
-            <label class="form-check-label fw-bold text-muted" for="reminderToggle" style="cursor: pointer;">
-                🔔 Schedule Reminders
-            </label>
-        </div>
-    </div>
 
 <!-- ── Notification permission banner ── -->
 <div id="notif-banner" class="alert alert-info mb-0 px-3 py-2">
@@ -142,10 +246,21 @@
 
 <!-- ── Main layout ── -->
 <div class="container-fluid p-3" style="max-width:1380px">
+    <div class="d-flex justify-content-end align-items-center mb-2 pe-2">
+        <div class="form-check form-switch d-flex align-items-center m-0">
+            <input class="form-check-input" type="checkbox" id="reminderSwitch" style="cursor: pointer; width: 32px; height: 16px;">
+            <label class="form-check-label ms-2 fw-bold text-muted small" for="reminderSwitch">
+                &#128276; Schedule Reminders
+            </label>
+        </div>
+    </div>
     <div class="row g-3">
 
         <!-- Sidebar -->
         <div class="col-12 col-md-3">
+            <button id="addNoteBtn" class="btn btn-primary w-100 mb-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#noteModal" style="display: block !important;">
+            + Add Note
+        </button>
             <div class="card h-100 calendar-card">
                 <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-2">
                     <h6 class="mb-0 fw-bold">&#128337; Upcoming (7 days)</h6>
@@ -524,8 +639,8 @@ function openAdd(ds) {
     document.getElementById('noteTime').value       = '09:00';
     document.getElementById('noteCat').value        = 'other';
     document.getElementById('noteRepeatToggle').checked = false;
-    document.getElementById('noteRepeat').value     = 'none';
-    document.getElementById('noteReminder').value   = '0';
+    document.getElementById('noteRepeat').value       = 'none';
+    document.getElementById('noteReminder').value     = '0';
     refreshRepeatOptions();
     document.getElementById('deleteNoteBtn').style.display = 'none';
     refreshNotifWarn();
@@ -541,11 +656,8 @@ function openEdit(note) {
     document.getElementById('noteDate').value       = note.note_date;
     document.getElementById('noteTime').value       = note.note_time || '09:00';
     document.getElementById('noteCat').value        = note.category || 'other';
-    const repeatRule = note.repeat_rule || 'none';
-    document.getElementById('noteRepeatToggle').checked = repeatRule !== 'none';
-    document.getElementById('noteRepeat').value       = repeatRule;
-    document.getElementById('noteReminder').value     = String(note.reminder_minutes || 0);
-    refreshRepeatOptions();
+    document.getElementById('noteRepeat').value     = note.repeat_rule || 'none';
+    document.getElementById('noteReminder').value   = String(note.reminder_minutes || 0);
     document.getElementById('deleteNoteBtn').style.display = '';
     refreshNotifWarn();
     bsModal.show();
@@ -935,13 +1047,12 @@ function friendlyDate(ds) {
 function esc(s) {
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-
 // ================================================================
 // Full-year calendar function
 // ================================================================
 document.addEventListener('DOMContentLoaded', function () {
   const currentYear = new Date().getFullYear();
-  const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
   const modal = document.getElementById("fullYearModal");
   const viewBtn = document.getElementById("viewFullYearBtn");
@@ -950,51 +1061,82 @@ document.addEventListener('DOMContentLoaded', function () {
   const yearTitle = document.getElementById("yearTitle");
   const saveBtn = document.getElementById("saveCalendarBtn");
 
-  // Open the pop-up window
+  const CAT = {
+    assignment: { bg: '#dc3545' },
+    meeting:    { bg: '#0d6efd' },
+    study:      { bg: '#198754' },
+    other:      { bg: '#6c757d' }
+  };
+
   viewBtn.addEventListener("click", () => {
     modal.style.display = "block";
     generateFullYearCalendar(currentYear);
   });
 
-  // Close the pop-up window
   closeBtn.addEventListener("click", () => modal.style.display = "none");
   window.addEventListener("click", (e) => {
     if (e.target === modal) modal.style.display = "none";
   });
 
-  // Generate the annual pop-up window
   function generateFullYearCalendar(year) {
     calendarContainer.innerHTML = "";
-    yearTitle.textContent = `${year} Full Year Calendar`;
+    yearTitle.textContent = `${year} Calendar`;
+    const allNotes = JSON.parse(localStorage.getItem('kea_buddy_notes') || '{}');
 
     for (let m = 0; m < 12; m++) {
       const firstDay = new Date(year, m, 1).getDay();
-      const daysInMonth = new Date(year, m+1, 0).getDate();
+      const daysInMonth = new Date(year, m + 1, 0).getDate();
 
       const monthDiv = document.createElement("div");
       monthDiv.className = "p-3 border rounded";
 
       const title = document.createElement("div");
       title.className = "fw-bold text-primary text-center mb-2";
-      title.textContent = monthNames[m];
+      title.textContent = MONTHS[m];
       monthDiv.appendChild(title);
 
       const grid = document.createElement("div");
       grid.style.display = "grid";
-      grid.style.gridTemplateColumns = "repeat(7,1fr)";
+      grid.style.gridTemplateColumns = "repeat(7, 1fr)";
       grid.style.gap = "4px";
       grid.style.fontSize = "12px";
 
-      for(let i=0; i<firstDay; i++){
-        const empty = document.createElement("div");
-        grid.appendChild(empty);
-      }
+      for (let i = 0; i < firstDay; i++) grid.appendChild(document.createElement("div"));
 
-      for(let d=1; d<=daysInMonth; d++){
-        const day = document.createElement("div");
-        day.textContent = d;
-        day.className = "text-center py-1";
-        grid.appendChild(day);
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dayEl = document.createElement("div");
+        dayEl.className = "text-center py-1";
+        dayEl.style.position = "relative";
+
+        const num = document.createElement("div");
+        num.textContent = d;
+        dayEl.appendChild(num);
+
+        const dateStr = `${year}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const dayNotes = allNotes[dateStr] || [];
+
+        if (dayNotes.length > 0) {
+          const cateSet = new Set();
+          dayNotes.forEach(n => cateSet.add(n.category));
+          const cateList = Array.from(cateSet);
+
+          const marker = document.createElement("div");
+          marker.style.display = "flex";
+          marker.style.height = "5px";
+          marker.style.width = "100%";
+          marker.style.marginTop = "3px";
+
+          cateList.forEach(cate => {
+            const part = document.createElement("div");
+            part.style.flex = "1";
+            part.style.backgroundColor = CAT[cate].bg;
+            marker.appendChild(part);
+          });
+
+          dayEl.appendChild(marker);
+        }
+
+        grid.appendChild(dayEl);
       }
 
       monthDiv.appendChild(grid);
@@ -1002,66 +1144,49 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // save the picture
-   saveBtn.addEventListener("click", async () => {
+  saveBtn.addEventListener("click", async () => {
     try {
       modal.style.display = "block";
-
       const canvas = await html2canvas(calendarContainer, {
         scale: 2,
         useCORS: true,
-        backgroundColor: "#ffffff",
-        logging: false
+        backgroundColor: "#fff"
       });
-
       const a = document.createElement("a");
-      a.download = `${currentYear}.png`;
+      a.download = "FullYearCalendar.png";
       a.href = canvas.toDataURL("image/png");
       a.click();
-
-      alert("✅ Calender saved successfully");
-    } catch (err) {
-      console.error("Export failed", err);
-      alert("❌ Save failed.Please ensure html2canvas library has been loaded");
+    } catch (e) {
+      console.error(e);
+      alert("Save failed");
     }
   });
 });
+// dark mode toggle
+const darkModeBtn = document.getElementById('darkModeBtn');
+const body = document.body;
+function initDarkMode() {
+  const isDark = localStorage.getItem('darkMode') === 'true';
+  if (isDark) { body.classList.add('dark-mode'); darkModeBtn.textContent = '☀️'; }
+}
+darkModeBtn.addEventListener('click', () => {
+  body.classList.toggle('dark-mode');
+  const isDark = body.classList.contains('dark-mode');
+  darkModeBtn.textContent = isDark ? '☀️' : '🌙';
+  localStorage.setItem('darkMode', isDark);
+});
+document.addEventListener('DOMContentLoaded', initDarkMode);
 </script>
 <script>
- // Listen for toggle switch changes
-    const reminderToggle = document.getElementById('reminderToggle');
-    
-    if (reminderToggle) {
-        reminderToggle.addEventListener('change', function() {
-            // Status: 1 if checked, 0 if unchecked
-            const isEnabled = this.checked ? 1 : 0; 
-            const targetUserId = 1; // Testing with user 1
-            
-            fetch('http://localhost/test_request.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: `user_id=${targetUserId}&is_enabled=${isEnabled}`
-            })
-            .then(response => response.text())
-            .then(data => {
-                console.log("Database Update: ", data);
-                // Alert user based on status
-                if (this.checked) {
-                    alert("🔔 Reminders turned ON!\n\n" + data);
-                } else {
-                    alert("🔕 Reminders turned OFF! You won't be disturbed.\n\n" + data);
-                }
-            })
-            .catch(error => {
-                console.error("Error: ", error);
-                // Revert toggle state if request fails
-                this.checked = !this.checked; 
-                alert("Failed to update settings. Please check server.");
+    document.addEventListener('DOMContentLoaded', () => {
+        const sw = document.getElementById('reminderSwitch');
+        if (sw) {
+            sw.checked = localStorage.getItem('reminderEnabled') === 'true';
+            sw.addEventListener('change', (e) => {
+                localStorage.setItem('reminderEnabled', e.target.checked);
             });
-        });
-    }
+        }
+    });
 </script>
 </body>
 </html>
