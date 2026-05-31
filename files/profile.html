@@ -264,7 +264,32 @@
                                 </div>
                             </div>
                         </div>
+                            <div class="card app-card mb-3">
+    <div class="card-header bg-white py-2">
+        <h6 class="mb-0 fw-bold">🎓 Program Progress</h6>
+    </div>
 
+    <div class="card-body">
+
+        <div class="progress"
+             style="height:25px; cursor:pointer;"
+             data-bs-toggle="modal"
+             data-bs-target="#programProgressModal">
+
+            <div id="programProgressBar"
+                 class="progress-bar bg-success"
+                 style="width:0%">
+                0%
+            </div>
+
+        </div>
+
+        <small class="text-muted">
+            Click to manage your course progress
+        </small>
+
+    </div>
+</div>
                         <!-- Edit Profile (functional) -->
                         <div class="card app-card mb-3">
                             <div class="card-header bg-white py-2">
@@ -457,6 +482,64 @@
 
         </div><!-- /profilePanel -->
 
+        <div class="modal fade"
+     id="programProgressModal"
+     tabindex="-1">
+
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">
+          Program Progress
+        </h5>
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal">
+        </button>
+      </div>
+
+      <div class="modal-body">
+
+        <label class="form-label">
+          Total courses required
+        </label>
+
+        <input type="number"
+               id="totalCourses"
+               class="form-control"
+               min="1">
+
+        <hr>
+
+        <p>
+          Completed Credits:
+          <strong id="completedCredits">
+            0
+          </strong>
+        </p>
+
+        <div class="d-grid gap-2">
+
+    <button class="btn btn-success"
+            onclick="completeCourse()">
+        Completed 1 Course (+15 Credits)
+    </button>
+
+    <button class="btn btn-danger"
+            onclick="undoCourse()">
+        Undo 1 Course (-15 Credits)
+    </button>
+
+</div>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>
     </main>
 
     <footer class="site-footer">&copy; 2026 Kea Buddy &mdash; Auckland University of Technology</footer>
@@ -480,27 +563,30 @@
         initDarkMode();
 
         // ── Entry point ───────────────────────────────────────────────
-        document.addEventListener('DOMContentLoaded', async () => {
-            let viewer = null;
-            try {
-                const a = await fetch('../api/auth/check.php', { credentials: 'same-origin' }).then(r => r.json());
-                if (a.logged_in) viewer = a.user;
-            } catch { }
+       document.addEventListener('DOMContentLoaded', async () => {
+    const testUser = {
+        id: 1,
+        name: "Jimmy",
+        email: "jim@gmail.com"
+    };
 
-            const params = new URLSearchParams(window.location.search);
-            const targetId = params.has('user') ? parseInt(params.get('user'), 10) : null;
-            const isOwn = !targetId || (viewer && targetId === viewer.id);
+    const testNotes = [];
 
-            if (isOwn && viewer) {
-                renderNav(viewer);
-                await loadOwnProfile(viewer);
-            } else if (targetId) {
-                viewer ? renderNav(viewer) : renderNavGuest();
-                await loadOtherProfile(targetId, viewer);
-            } else {
-                showGuest();
-            }
-        });
+    const testProfileData = {
+        display_name: "Jimmy",
+        bio: "Testing Program progress bar",
+        avatar_path: ""
+    };
+
+    renderNav(testUser);
+
+    document.getElementById('guestPanel').style.display = 'none';
+    document.getElementById('profilePanel').style.display = '';
+    document.getElementById('ownPanel').style.display = '';
+    document.getElementById('otherPanel').style.display = 'none';
+
+    renderOwnProfile(testUser, testNotes, testProfileData);
+});
 
         // ══════════════════════════════════════════════════════════════
         //  OWN PROFILE
@@ -985,6 +1071,107 @@
         <a href="../authentication/register.html" class="btn btn-primary btn-sm">Register</a>
       </div>`;
         }
+
+
+
+
+
+let totalCourses =
+    parseInt(localStorage.getItem("totalCourses")) || 0;
+
+let completedCredits =
+    parseInt(localStorage.getItem("completedCredits")) || 0;
+
+function updateProgramProgress() {
+
+    const totalCredits = totalCourses * 15;
+
+    const percent =
+        totalCredits > 0
+        ? Math.min(
+            Math.round(
+                (completedCredits / totalCredits) * 100
+            ),
+            100
+        )
+        : 0;
+
+    const bar =
+        document.getElementById("programProgressBar");
+
+    if (bar) {
+        bar.style.width = percent + "%";
+        bar.textContent = percent + "%";
+    }
+
+    const creditsText =
+        document.getElementById("completedCredits");
+
+    if (creditsText) {
+        creditsText.textContent =
+            completedCredits;
+    }
+
+    localStorage.setItem(
+        "completedCredits",
+        completedCredits
+    );
+
+    localStorage.setItem(
+        "totalCourses",
+        totalCourses
+    );
+}
+
+function completeCourse() {
+
+    completedCredits += 15;
+
+    updateProgramProgress();
+}
+
+function undoCourse() {
+
+    completedCredits -= 15;
+
+    if (completedCredits < 0) {
+        completedCredits = 0;
+    }
+
+    updateProgramProgress();
+}
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        const courseInput =
+            document.getElementById("totalCourses");
+
+        if (courseInput) {
+
+            courseInput.value =
+                totalCourses;
+
+            courseInput.addEventListener(
+                "change",
+                () => {
+
+                    totalCourses =
+                        parseInt(
+                            courseInput.value
+                        ) || 0;
+
+                    updateProgramProgress();
+                }
+            );
+        }
+
+        updateProgramProgress();
+    }
+);
+
+
 
         function esc(s) {
             return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
