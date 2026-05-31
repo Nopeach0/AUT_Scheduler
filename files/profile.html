@@ -563,30 +563,28 @@
         initDarkMode();
 
         // ── Entry point ───────────────────────────────────────────────
-       document.addEventListener('DOMContentLoaded', async () => {
-    const testUser = {
-        id: 1,
-        name: "Jimmy",
-        email: "jim@gmail.com"
-    };
+      document.addEventListener('DOMContentLoaded', async () => {
+    let viewer = null;
+    try {
+        const a = await fetch('../api/auth/check.php', { credentials: 'same-origin' }).then(r => r.json());
+        if (a.logged_in) viewer = a.user;
+    } catch { }
 
-    const testNotes = [];
+    const params = new URLSearchParams(window.location.search);
+    const targetId = params.has('user') ? parseInt(params.get('user'), 10) : null;
+    const isOwn = !targetId || (viewer && targetId === viewer.id);
 
-    const testProfileData = {
-        display_name: "Jimmy",
-        bio: "Testing Program progress bar",
-        avatar_path: ""
-    };
-
-    renderNav(testUser);
-
-    document.getElementById('guestPanel').style.display = 'none';
-    document.getElementById('profilePanel').style.display = '';
-    document.getElementById('ownPanel').style.display = '';
-    document.getElementById('otherPanel').style.display = 'none';
-
-    renderOwnProfile(testUser, testNotes, testProfileData);
+    if (isOwn && viewer) {
+        renderNav(viewer);
+        await loadOwnProfile(viewer);
+    } else if (targetId) {
+        viewer ? renderNav(viewer) : renderNavGuest();
+        await loadOtherProfile(targetId, viewer);
+    } else {
+        showGuest();
+    }
 });
+   
 
         // ══════════════════════════════════════════════════════════════
         //  OWN PROFILE
