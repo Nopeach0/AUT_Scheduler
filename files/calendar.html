@@ -980,7 +980,11 @@ function scheduleNoteTimers(note) {
 function fireNotif(note, occurrenceDate) {
     const c = CAT[note.category] || CAT.other;
     const title = `Reminder: ${c.label}`;
-    const body  = note.title + (note.description ? '\n' + note.description : '');
+    let body = note.title + (note.description ? '\n' + note.description : '');
+
+    // When a note is close to its due date, remind the user to review SCA requirements.
+    body += '\n\nCheck SCA requirements: https://sca.aut.ac.nz/';
+
     const icon  = '../assets/images/logo.png';
     const tag   = 'kea_' + note.id + (occurrenceDate ? '_' + occurrenceDate : '');
 
