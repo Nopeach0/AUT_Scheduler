@@ -1515,13 +1515,16 @@ function createAssignmentPlan(event) {
         }
 
         notes[slot.date].push({
-            id: task.id,
-            title: task.title,
-            note_date: slot.date,
-            category: "study",
-            start_time: slot.time,
-            description: `Auto-planned assignment part for ${name} (${slot.hours} hour/s)`
+        id: task.id,
+        title: task.title,
+        note_date: slot.date,
+        note_time: slot.time,
+        category: "study",
+        description: `Auto-planned assignment part for ${name} (${slot.hours} hour/s)`,
+        repeat_rule: "none",
+        reminder_minutes: 0
         });
+        
     }
 
     localStorage.setItem(LS_KEY, JSON.stringify(notes));
@@ -1645,11 +1648,13 @@ function getFreeHoursForDate(dateString) {
     const occupiedHours = [];
 
     dayNotes.forEach(note => {
-        if (note.start_time) {
-            const hour = parseInt(note.start_time.split(":")[0]);
-            occupiedHours.push(hour);
-        }
-    });
+    const timeValue = note.note_time || note.start_time;
+
+    if (timeValue) {
+        const hour = parseInt(timeValue.split(":")[0]);
+        occupiedHours.push(hour);
+    }
+});
 
     const freeHours = [];
 
