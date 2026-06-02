@@ -246,10 +246,21 @@
 
 <!-- ── Main layout ── -->
 <div class="container-fluid p-3" style="max-width:1380px">
+    <div class="d-flex justify-content-end align-items-center mb-2 pe-2">
+        <div class="form-check form-switch d-flex align-items-center m-0">
+            <input class="form-check-input" type="checkbox" id="reminderSwitch" style="cursor: pointer; width: 32px; height: 16px;">
+            <label class="form-check-label ms-2 fw-bold text-muted small" for="reminderSwitch">
+                &#128276; Schedule Reminders
+            </label>
+        </div>
+    </div>
     <div class="row g-3">
 
         <!-- Sidebar -->
         <div class="col-12 col-md-3">
+            <button id="addNoteBtn" class="btn btn-primary w-100 mb-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#noteModal" style="display: block !important;">
+            + Add Note
+        </button>
             <div class="card h-100 calendar-card">
                 <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-2">
                     <h6 class="mb-0 fw-bold">&#128337; Upcoming (7 days)</h6>
@@ -378,6 +389,12 @@
                     </select>
                 </div>
 
+                <div class="mb-3" id="noteRepeatEndDateRow" style="display:none">
+                    <label class="form-label fw-semibold">Repeat Until (optional)</label>
+                    <input type="date" class="form-control" id="noteRepeatEndDate">
+                    <small class="text-muted">Leave empty for no end date</small>
+                </div>
+
                 <div class="mb-2">
                     <label class="form-label fw-semibold">&#128276; Reminder</label>
                     <select class="form-select" id="noteReminder">
@@ -451,6 +468,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('deleteNoteBtn').addEventListener('click', handleDelete);
     document.getElementById('noteReminder').addEventListener('change', refreshNotifWarn);
     document.getElementById('noteRepeatToggle').addEventListener('change', refreshRepeatOptions);
+    document.getElementById('noteRepeat').addEventListener('change', refreshRepeatOptions);
 
     // Event delegation on grid and sidebar
     document.getElementById('daysGrid').addEventListener('click', onGridClick);
@@ -550,6 +568,7 @@ async function handleSave() {
         note_time:        document.getElementById('noteTime').value || '09:00',
         category:         document.getElementById('noteCat').value,
         repeat_rule:      document.getElementById('noteRepeatToggle').checked ? document.getElementById('noteRepeat').value || 'none' : 'none',
+        repeat_end_date:  document.getElementById('noteRepeatToggle').checked ? document.getElementById('noteRepeatEndDate').value || null : null,
         reminder_minutes: parseInt(document.getElementById('noteReminder').value) || 0
     };
 
@@ -629,6 +648,7 @@ function openAdd(ds) {
     document.getElementById('noteCat').value        = 'other';
     document.getElementById('noteRepeatToggle').checked = false;
     document.getElementById('noteRepeat').value       = 'none';
+    document.getElementById('noteRepeatEndDate').value = '';
     document.getElementById('noteReminder').value     = '0';
     refreshRepeatOptions();
     document.getElementById('deleteNoteBtn').style.display = 'none';
@@ -646,8 +666,11 @@ function openEdit(note) {
     document.getElementById('noteTime').value       = note.note_time || '09:00';
     document.getElementById('noteCat').value        = note.category || 'other';
     document.getElementById('noteRepeat').value     = note.repeat_rule || 'none';
+    document.getElementById('noteRepeatEndDate').value = note.repeat_end_date || '';
     document.getElementById('noteReminder').value   = String(note.reminder_minutes || 0);
+    document.getElementById('noteRepeatToggle').checked = (note.repeat_rule && note.repeat_rule !== 'none');
     document.getElementById('deleteNoteBtn').style.display = '';
+    refreshRepeatOptions();
     refreshNotifWarn();
     bsModal.show();
 }
@@ -655,10 +678,14 @@ function openEdit(note) {
 function refreshRepeatOptions() {
     const toggle = document.getElementById('noteRepeatToggle');
     const row = document.getElementById('noteRepeatRow');
-    if (!toggle || !row) return;
+    const endDateRow = document.getElementById('noteRepeatEndDateRow');
+    if (!toggle || !row || !endDateRow) return;
+    const isEnabled = toggle.checked && document.getElementById('noteRepeat').value !== 'none';
     row.style.display = toggle.checked ? '' : 'none';
+    endDateRow.style.display = isEnabled ? '' : 'none';
     if (!toggle.checked) {
         document.getElementById('noteRepeat').value = 'none';
+        document.getElementById('noteRepeatEndDate').value = '';
     }
 }
 
@@ -971,6 +998,9 @@ function occursOn(note, dateStr) {
     const rule = note.repeat_rule || 'none';
     if (rule === 'none') return note.note_date === dateStr;
     if (dateStr < note.note_date) return false;
+    
+    // Check if the date is after the repeat end date
+    if (note.repeat_end_date && dateStr > note.repeat_end_date) return false;
 
     if (rule === 'daily') {
         return true;
@@ -1165,6 +1195,17 @@ darkModeBtn.addEventListener('click', () => {
   localStorage.setItem('darkMode', isDark);
 });
 document.addEventListener('DOMContentLoaded', initDarkMode);
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const sw = document.getElementById('reminderSwitch');
+        if (sw) {
+            sw.checked = localStorage.getItem('reminderEnabled') === 'true';
+            sw.addEventListener('change', (e) => {
+                localStorage.setItem('reminderEnabled', e.target.checked);
+            });
+        }
+    });
 </script>
 </body>
 </html>

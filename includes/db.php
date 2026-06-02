@@ -101,6 +101,12 @@ if ($col && $col->num_rows === 0) {
     $conn->query("ALTER TABLE calendar_notes ADD COLUMN repeat_rule ENUM('none','daily','weekly','monthly') NOT NULL DEFAULT 'none'");
 }
 
+// Add repeat_end_date to calendar_notes if it doesn't exist yet
+$col = $conn->query("SHOW COLUMNS FROM calendar_notes LIKE 'repeat_end_date'");
+if ($col && $col->num_rows === 0) {
+    $conn->query("ALTER TABLE calendar_notes ADD COLUMN repeat_end_date DATE NULL DEFAULT NULL");
+}
+
 // Profile customisation columns
 foreach ([
     'display_name' => "ALTER TABLE users ADD COLUMN display_name VARCHAR(100)  NULL DEFAULT NULL",
