@@ -519,6 +519,20 @@
             0
           </strong>
         </p>
+        <p>
+        Courses Completed:
+        <strong id="coursesCompletedText">0 / 0</strong>
+        </p>
+
+        <p>
+         Credits Needed:
+            <strong id="creditsNeededText">0 credits</strong>
+            </p>
+
+        <p>
+         Courses Remaining:
+        <strong id="coursesRemainingText">0</strong>
+        </p>
 
         <div class="d-grid gap-2">
 
@@ -1082,17 +1096,23 @@ let completedCredits =
 
 function updateProgramProgress() {
 
-    const totalCredits = totalCourses * 15;
+        
+        const totalCredits = totalCourses * 15;
+        const completedCourses = Math.floor(completedCredits / 15);
+        const coursesRemaining = Math.max(totalCourses - completedCourses, 0);
+        const creditsNeeded = Math.max(totalCredits - completedCredits, 0);
 
-    const percent =
-        totalCredits > 0
-        ? Math.min(
-            Math.round(
-                (completedCredits / totalCredits) * 100
-            ),
-            100
-        )
-        : 0;
+        document.getElementById("coursesCompletedText").textContent =
+         `${completedCourses} / ${totalCourses}`;
+
+        document.getElementById("creditsNeededText").textContent =
+            `${creditsNeeded} credits`;
+
+        document.getElementById("coursesRemainingText").textContent =
+            coursesRemaining;
+            const percent =
+            totalCredits > 0
+            ? Math.min( Math.round( (completedCredits / totalCredits) * 100 ),100 ) : 0;
 
     const bar =
         document.getElementById("programProgressBar");
