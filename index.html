@@ -39,71 +39,150 @@
         }
 
         /* dark mode */
-        * {
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-        }
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
 
-        body.dark-mode {
-            background-color: #121212 !important;
-            color: #e0e0e0 !important;
-        }
+body.dark-mode {
+    background-color: #121212 !important;
+    color: #e0e0e0 !important;
+}
 
-        body.dark-mode .navbar {
-            background-color: #1e1e1e !important;
-            border-bottom: 1px solid #333;
-        }
+body.dark-mode .navbar {
+    background-color: #1e1e1e !important;
+    border-bottom: 1px solid #333;
+}
 
-        body.dark-mode .card,
-        body.dark-mode .app-card,
-        body.dark-mode .quick-card {
-            background-color: #1e1e1e !important;
-            border-color: #333 !important;
-            color: #e0e0e0 !important;
-        }
+body.dark-mode .card,
+body.dark-mode .app-card,
+body.dark-mode .quick-card {
+    background-color: #1e1e1e !important;
+    border-color: #333 !important;
+    color: #e0e0e0 !important;
+}
 
-        body.dark-mode .card-header,
-        body.dark-mode .card-footer {
-            background-color: #252525 !important;
-            border-color: #333 !important;
-            color: #e0e0e0 !important;
-        }
+body.dark-mode .card-header,
+body.dark-mode .card-footer {
+    background-color: #252525 !important;
+    border-color: #333 !important;
+    color: #e0e0e0 !important;
+}
 
-        body.dark-mode h5,
-        body.dark-mode h6,
-        body.dark-mode .fw-bold {
-            color: #ffffff !important;
-        }
+body.dark-mode h5,
+body.dark-mode h6,
+body.dark-mode .fw-bold {
+    color: #ffffff !important;
+}
 
-        body.dark-mode .text-muted {
-            color: #aaa !important;
-        }
+body.dark-mode .text-muted {
+    color: #aaa !important;
+}
 
-        body.dark-mode .btn-outline-primary {
-            color: #64b5f6;
-            border-color: #64b5f6;
-        }
-        body.dark-mode .btn-primary {
-            background-color: #1976d2 !important;
-            border-color: #1976d2 !important;
-        }
+body.dark-mode .btn-outline-primary {
+    color: #64b5f6;
+    border-color: #64b5f6;
+}
+body.dark-mode .btn-primary {
+    background-color: #1976d2 !important;
+    border-color: #1976d2 !important;
+}
 
-        body.dark-mode .site-footer {
-            background-color: #1e1e1e !important;
-            color: #ccc !important;
-        }
+body.dark-mode .site-footer {
+    background-color: #1e1e1e !important;
+    color: #ccc !important;
+}
 
-        #darkModeBtn {
-            background: transparent;
-            border: 1px solid #ced4da;
-            color: #fff;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        body.dark-mode #darkModeBtn {
-            border-color: #6c757d;
-        }
+#darkModeBtn {
+    background: transparent;
+    border: 1px solid #ced4da;
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+}
+body.dark-mode #darkModeBtn {
+    border-color: #6c757d;
+}
+
+/* Todo list styles */
+.todo-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #e9ecef;
+    flex-wrap: wrap;
+}
+.todo-item:last-child {
+    border-bottom: none;
+}
+.todo-item.completed .todo-text {
+    text-decoration: line-through;
+    color: #6c757d;
+}
+.todo-remove-btn {
+    border: none;
+    background: transparent;
+    color: #dc3545;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+}
+.todo-time-info {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-left: auto;
+}
+.todo-item.near-deadline {
+    background-color: #fff3cd;
+    border-left: 4px solid #ffc107;
+}
+.todo-item.overdue {
+    background-color: #f8d7da;
+    border-left: 4px solid #dc3545;
+}
+body.dark-mode .todo-item {
+    border-bottom-color: #333;
+}
+body.dark-mode .todo-time-info {
+    color: #aaa;
+}
+body.dark-mode .todo-item.near-deadline {
+    background-color: #332b00;
+    border-left-color: #ffc107;
+}
+body.dark-mode .todo-item.overdue {
+    background-color: #3b1a1e;
+    border-left-color: #dc3545;
+}
+
+body.dark-mode #todoListPanel .card-header {
+    background-color: #252525 !important;
+}
+body.dark-mode #todoInput,
+body.dark-mode #todoStartTime,
+body.dark-mode #todoEndTime {
+    background-color: #2c2c2c !important;
+    color: #e0e0e0 !important;
+    border-color: #444 !important;
+}
+body.dark-mode input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+body.dark-mode #todoList .text-muted {
+    color: #aaaaaa !important;
+}
+body.dark-mode .todo-checkbox {
+    accent-color: #1976d2;
+}
+body.dark-mode #clearAllTodosBtn {
+    background-color: #b9313c !important;
+    border-color: #b9313c !important;
+}
+body.dark-mode .badge.bg-primary {
+    background-color: #1976d2 !important;
+}
 
         /* Todo list styles */
         .todo-item {
