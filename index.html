@@ -1499,16 +1499,23 @@ function openAssignmentPlanner() {
     modal.show();
 }
 
-function createAssignmentPlan(event) {
+async function createAssignmentPlan(event) {
     event.preventDefault();
 
     const name = document.getElementById("assignmentName").value;
     const parts = parseInt(document.getElementById("assignmentParts").value);
     const hours = parseInt(document.getElementById("hoursPerPart").value);
 
+    const startDate = document.getElementById("startDate").value;
+    const dueDate = selectedAssignment.note_date;
+
     assignmentPlan = [];
 
-    const slots = findAvailableSlotsBeforeDueDate(selectedAssignment.note_date, parts, hours);
+    const slots = findAvailableSlotsBeforeDueDate(startDate, dueDate, parts, hours);
+
+    if (!slots.length) {
+        return;
+    }
 
     for (let i = 0; i < slots.length; i++) {
         const slot = slots[i];
@@ -1524,27 +1531,70 @@ function createAssignmentPlan(event) {
 
         assignmentPlan.push(task);
 
-        if (!notes[slot.date]) {
-            notes[slot.date] = [];
-        }
+        const plannedNote = {
+            title: task.title,
+            description: `Auto-planned assignment part for ${name} (${slot.hours} hour/s)`,
+            note_date: slot.date,
+            note_time: slot.time,
+            category: "study",
+            repeat_rule: "none",
+            reminder_minutes: 0
+        };
 
-        notes[slot.date].push({
-        id: task.id,
-        title: task.title,
-        note_date: slot.date,
-        note_time: slot.time,
-        category: "study",
-        description: `Auto-planned assignment part for ${name} (${slot.hours} hour/s)`,
-        repeat_rule: "none",
-        reminder_minutes: 0
-        });
-        
+        if (isLoggedIn) {
+            try {
+                const response = await fetch("api/calendar/events.php", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(plannedNote)
+                });
+
+                const savedNote = await response.json();
+
+                if (!response.ok || !savedNote.id) {
+                    throw new Error(savedNote.error || "Could not save planned study part.");
+                }
+
+                if (!notes[savedNote.note_date]) {
+                    notes[savedNote.note_date] = [];
+                }
+
+                notes[savedNote.note_date].push(savedNote);
+
+            } catch (error) {
+                alert("Could not save one of the planned study parts. Please try again.");
+                console.error(error);
+                return;
+            }
+        } else {
+            plannedNote.id = task.id;
+
+            if (!notes[slot.date]) {
+                notes[slot.date] = [];
+            }
+
+            notes[slot.date].push(plannedNote);
+        }
     }
 
-    localStorage.setItem(LS_KEY, JSON.stringify(notes));
+    if (!isLoggedIn) {
+        localStorage.setItem(LS_KEY, JSON.stringify(notes));
+    }
+
     renderPanels();
     renderAssignmentPlan();
+
+    alert("Assignment study plan created successfully.");
 }
+
+
+
+
+
+
 
 function renderAssignmentPlan() {
     const list = document.getElementById("assignmentPlanList");
@@ -1580,15 +1630,20 @@ function markComplete(id) {
     renderAssignmentPlan();
 }
 
-function findAvailableSlotsBeforeDueDate(dueDate, totalParts, hoursPerPart) {
+function findAvailableSlotsBeforeDueDate(startDate, dueDate, totalParts, hoursPerPart) {
     const slots = [];
 
-    const today = new Date();
+    const start = new Date(startDate + "T00:00:00");
     const due = new Date(dueDate + "T00:00:00");
+
+    if (start >= due) {
+        alert("Start date must be before the assignment due date.");
+        return [];
+    }
 
     const availableDays = [];
 
-    for (let d = new Date(today); d <= due; d.setDate(d.getDate() + 1)) {
+    for (let d = new Date(start); d < due; d.setDate(d.getDate() + 1)) {
         const dateString = formatDate(new Date(d));
         const freeHours = getFreeHoursForDate(dateString);
 
@@ -1601,7 +1656,7 @@ function findAvailableSlotsBeforeDueDate(dueDate, totalParts, hoursPerPart) {
     }
 
     if (availableDays.length === 0) {
-        alert("No free slots available before the due date.");
+        alert("No free study slots available before the assignment due date.");
         return [];
     }
 
@@ -1633,7 +1688,9 @@ function findAvailableSlotsBeforeDueDate(dueDate, totalParts, hoursPerPart) {
             partsAddedToday++;
         }
 
-        if (partIndex >= totalParts) break;
+        if (partIndex >= totalParts) {
+            break;
+        }
     }
 
     if (partIndex < totalParts) {
@@ -1642,7 +1699,6 @@ function findAvailableSlotsBeforeDueDate(dueDate, totalParts, hoursPerPart) {
 
     return slots;
 }
-
 function countAssignmentPartsOnDate(dateString) {
     const dayNotes = notes[dateString] || [];
 
